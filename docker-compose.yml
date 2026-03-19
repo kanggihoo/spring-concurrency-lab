@@ -49,12 +49,12 @@ services:
       - prometheus
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
-    # k6 run 명령어는 실행 시 오버라이드한다 (아래 실행 명령어 참고)
-    # command: run --out experimental-prometheus-rw /scripts/baseline.js
+    # k6 로드 테스트를 실행하려면 아래 커맨드를 덮어쓰거나 프로필 모드로 실행하세요.
+    command: run --out experimental-prometheus-rw /scripts/simple_test.js
     extra_hosts:
       - "host.docker.internal:host-gateway" # 로컬 Spring Boot 서버 접근용
-    # profiles:
-    #   - k6 # `docker compose --profile k6 run k6 ...` 으로만 실행됨
+    profiles:
+      - test # `docker compose --profile test up k6` 으로 실행 가능
 
 volumes:
   grafana-storage:
