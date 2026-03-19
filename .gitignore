@@ -1,0 +1,29 @@
+### IDE Settings (VS Code, IntelliJ) ###
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+### OS Specific ###
+.DS_Store
+Thumbs.db
+
+### Build & Artifacts ###
+# 모든 하위 폴더의 빌드 산출물 제외
+**/build/
+**/out/
+**/bin/
+**/obj/
+target/
+.gradle/
+
+# 하지만 Gradle Wrapper는 추적되어야 함
+!gradle/wrapper/gradle-wrapper.jar
+
+### Logs ###
+*.log
+
+### Others ###
+# 혹시나 볼륨 마운트 데이터를 로컬 디렉토리에 생성할 경우를 대비
+# data/
