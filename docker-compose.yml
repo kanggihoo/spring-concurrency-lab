@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: reservation
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-remote-write-receiver" # k6 Remote Write 수신 활성화
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # 로컬 Spring Boot 서버 접근용
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+    restart: unless-stopped
+
+  k6:
+    image: grafana/k6
+    container_name: k6
+    volumes:
+      - ./scripts:/scripts # 로컬 scripts 폴더를 컨테이너에 마운트
+    depends_on:
+      - prometheus
+    environment:
+      - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+    # k6 run 명령어는 실행 시 오버라이드한다 (아래 실행 명령어 참고)
+    # command: run --out experimental-prometheus-rw /scripts/baseline.js
+    extra_hosts:
+      - "host.docker.internal:host-gateway" # 로컬 Spring Boot 서버 접근용
+    # profiles:
+    #   - k6 # `docker compose --profile k6 run k6 ...` 으로만 실행됨
+
+volumes:
+  grafana-storage:

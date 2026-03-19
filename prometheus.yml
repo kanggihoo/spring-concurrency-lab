@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  # Spring Boot Actuator 메트릭 수집
+  - job_name: "spring"
+    static_configs:
+      - targets: ["host.docker.internal:8080"] # 로컬에서 실행 중인 Spring Boot
+    metrics_path: "/actuator/prometheus"
+
+  # # PostgreSQL Exporter 메트릭 수집
+  # - job_name: "postgres"
+  #   static_configs:
+  #     - targets: ["postgres-exporter:9187"]
+
+  # k6는 Remote Write로 메트릭을 Push하므로 별도 scrape 불필요
