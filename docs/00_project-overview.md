@@ -257,17 +257,11 @@ UPDATE concert SET stock = 100 WHERE id = 1;
 
 ### 체크리스트
 
-- [ ] Grafana `localhost:3000` 접속 확인
-- [ ] Prometheus `localhost:9090` 접속 확인
-- [ ] Spring `/actuator/prometheus` 엔드포인트 응답 확인
+- [x] Grafana `localhost:3000` 접속 확인
+- [x] Prometheus `localhost:9090` 접속 확인
+- [x] Spring `/actuator/prometheus` 엔드포인트 응답 확인
 - [ ] postgres-exporter 메트릭 수집 확인
 - [ ] `/api/test/reset` 호출 시 DB 상태 초기화 확인
-
-### 회고
-
-- **예상과 달랐던 점**:
-- **가장 어려웠던 부분**:
-- **실무에 적용한다면**:
 
 ---
 
