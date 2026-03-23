@@ -4,12 +4,13 @@ import com.example.concurrency.domain.Concert;
 import com.example.concurrency.domain.Reservation;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.resilience.annotation.Retryable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 예약 서비스 — Phase 2 베이스라인 (락 없음).
- * 여러 스레드가 동시에 같은 stock 값을 읽고 차감하므로 lost update가 발생한다.
+ * 예약 서비스 — Phase 3: 비관적 락 / 낙관적 락 동시성 처리.
  */
 @Service
 public class ReservationService {
@@ -24,25 +25,48 @@ public class ReservationService {
     }
 
     /**
-     * 예약 처리 — 락 없이 수행.
-     * Race Condition 발생 지점: findById → stock 체크 → 차감 사이에
-     * 다른 스레드가 같은 stock 값을 읽어 중복 차감이 누락된다.
+     * 락 없는 예약 (Phase 2 베이스라인).
+     * 동시 접근 시 Lost Update 발생 가능.
      */
     @Transactional
     public void reserve(Long concertId, Long userId) {
-        // 1. find concert
         Concert concert = concertRepository.findById(concertId)
                 .orElseThrow(() -> new IllegalArgumentException("Concert not found. id=" + concertId));
 
-        // 2. check stock
-        if (concert.getStock() <= 0) {
-            throw new IllegalStateException("Sold out.");
-        }
+        concert.decreaseStock();
+        reservationRepository.save(new Reservation(concertId, userId));
+    }
 
-        // 3. decrease stock — lost update can occur here
-        concert.decreaseStock(); // JPA의 변경 감지(Dirty Checking)으로 인해 값변경시 업데이트 SQL 진행.
+    /**
+     * 비관적 락 예약 — SELECT FOR UPDATE로 row 잠금.
+     * 다른 트랜잭션은 이 락이 풀릴 때까지 대기한다.
+     */
+    @Transactional
+    public void reserveWithPessimisticLock(Long concertId, Long userId) {
+        // 비관적 락으로 조회 — 다른 트랜잭션 대기
+        Concert concert = concertRepository.findByIdWithPessimisticLock(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("Concert not found. id=" + concertId));
 
-        // 4. save reservation
+        concert.decreaseStock();
+        reservationRepository.save(new Reservation(concertId, userId));
+    }
+
+    /**
+     * 낙관적 락 예약 — @Version으로 충돌 감지, 충돌 시 자동 재시도.
+     * maxAttempts=5, 재시도 간격 100ms.
+     */
+    @Retryable(
+            includes = ObjectOptimisticLockingFailureException.class,
+            maxRetries = 4,   // 최대 4회 재시도 (총 5회 시도)
+            delay = 100       // 재시도 간격 100ms
+    )
+    @Transactional
+    public void reserveWithOptimisticLock(Long concertId, Long userId) {
+        // 일반 조회 — @Version으로 커밋 시점에 충돌 감지
+        Concert concert = concertRepository.findById(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("Concert not found. id=" + concertId));
+
+        concert.decreaseStock();
         reservationRepository.save(new Reservation(concertId, userId));
     }
 }

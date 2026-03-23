@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 /**
  * 콘서트 엔티티 — 예약 가능한 좌석(stock)을 관리한다.
- * Phase 2에서는 @Version 없이 동시성 제어 없음 (의도적 Race Condition).
+ * Phase 3: @Version 추가로 낙관적 락 지원.
  */
 @Entity
 @Table(name = "concert")
@@ -22,9 +22,13 @@ public class Concert {
     @Column(nullable = false)
     private String title;
 
-    // 남은 좌석 수 — 동시 접근 시 정합성이 깨질 수 있음
+    // 남은 좌석 수
     @Column(nullable = false)
     private int stock;
+
+    // 낙관적 락용 버전 컬럼 — UPDATE 시 version 불일치면 OptimisticLockException 발생
+    @Version
+    private Long version;
 
     public Concert(String title, int stock) {
         this.title = title;
@@ -36,8 +40,11 @@ public class Concert {
         this.stock = stock;
     }
 
-    // 재고 1 차감 — 락 없이 호출 시 lost update 발생 가능
+    // 재고 1 차감 — 재고 부족 시 예외 발생
     public void decreaseStock() {
+        if (this.stock <= 0) {
+            throw new IllegalStateException("Sold out.");
+        }
         this.stock--;
     }
 }

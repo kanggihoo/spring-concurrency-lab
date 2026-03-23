@@ -29,6 +29,8 @@ dependencyManagement { // 이게 뭐하는 용도이길레 TestContainer 이용�
 	}
 }
 
+
+// Spring Boot 4.x / Spring Framework 7.x — 네이티브 retry 내장 (별도 의존성 불필요)
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -56,13 +58,8 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
+
 
 tasks.named('test') {
 	useJUnitPlatform()
-	// Windows 환경에서 한글 깨짐 방지 — JVM stdout 인코딩을 UTF-8로 강제
-	systemProperty "file.encoding", "UTF-8"
-	jvmArgs '-Dstdout.encoding=UTF-8', '-Dstderr.encoding=UTF-8'
 }
