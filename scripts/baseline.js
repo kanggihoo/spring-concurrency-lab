@@ -19,15 +19,23 @@ export const options = {
   scenarios: {
     baseline: {
       executor: "constant-vus",
-      vus: 100,        // 100명 동시 요청
-      duration: "10s",
+      vus: 100, // 100명 동시 요청
+      duration: "10s", // 10초간 진행
     },
   },
   thresholds: {
-    http_req_failed:   ["rate<0.01"],   // 에러율 1% 미만
-    http_req_duration: ["p(95)<1000"],  // 95%ile 응답시간 1초 미만
+    http_req_failed: ["rate<0.01"], // 에러율 1% 미만
+    http_req_duration: ["p(95)<1000"], // 95%ile 응답시간 1초 미만
   },
 };
+
+// Reset data before test — clear reservations and restore stock to 100
+export function setup() {
+  const res = http.post(`${BASE_URL}/api/test/reset`);
+  check(res, {
+    "reset OK": (r) => r.status === 200,
+  });
+}
 
 export default function () {
   const res = http.post(

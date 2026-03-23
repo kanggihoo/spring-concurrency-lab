@@ -9,8 +9,9 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/00_init.sql
+      # - ./init.sql:/docker-entrypoint-initdb.d/00_init.sql
       - ./postgres/init/01_monitoring.sql:/docker-entrypoint-initdb.d/01_monitoring.sql
+      - ./postgres/init/02_schema.sql:/docker-entrypoint-initdb.d/02_schema.sql
       - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf
     command: postgres -c config_file=/etc/postgresql/postgresql.conf
     restart: unless-stopped
