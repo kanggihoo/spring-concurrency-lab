@@ -150,7 +150,8 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
     volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres/init/01_monitoring.sql:/docker-entrypoint-initdb.d/01_monitoring.sql
+      - ./postgres/init/02_schema.sql:/docker-entrypoint-initdb.d/02_schema.sql # Phase 2에서 추가
 
   redis:
     image: redis:7.2-alpine
@@ -172,12 +173,11 @@ services:
 PostgreSQL에서 쿼리 통계와 실행계획 자동 수집을 활성화한다.
 
 ```sql
--- postgresql.conf (또는 init.sql에 추가)
-ALTER SYSTEM SET shared_preload_libraries = 'pg_stat_statements,auto_explain';
-ALTER SYSTEM SET auto_explain.log_min_duration = '500ms';
-ALTER SYSTEM SET auto_explain.log_analyze = true;
+-- postgres/postgresql.conf 에서 설정 (현재 적용됨)
+shared_preload_libraries = 'pg_stat_statements'
+pg_stat_statements.track = all
 
--- 확장 활성화
+-- postgres/init/01_monitoring.sql 에서 확장 활성화 (현재 적용됨)
 CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
 ```
 
@@ -250,24 +250,18 @@ public class TestResetController {
 또는 SQL 스크립트로도 초기화할 수 있다.
 
 ```sql
--- scripts/reset.sql
+-- postgres/init/reset.sql (필요 시 수동 실행용)
 TRUNCATE reservation RESTART IDENTITY CASCADE;
 UPDATE concert SET stock = 100 WHERE id = 1;
 ```
 
 ### 체크리스트
 
-- [ ] Grafana `localhost:3000` 접속 확인
-- [ ] Prometheus `localhost:9090` 접속 확인
-- [ ] Spring `/actuator/prometheus` 엔드포인트 응답 확인
-- [ ] postgres-exporter 메트릭 수집 확인
-- [ ] `/api/test/reset` 호출 시 DB 상태 초기화 확인
-
-### 회고
-
-- **예상과 달랐던 점**:
-- **가장 어려웠던 부분**:
-- **실무에 적용한다면**:
+- [x] Grafana `localhost:3000` 접속 확인
+- [x] Prometheus `localhost:9090` 접속 확인
+- [x] Spring `/actuator/prometheus` 엔드포인트 응답 확인
+- [x] postgres-exporter 메트릭 수집 확인
+- [x] `/api/test/reset` 호출 시 DB 상태 초기화 확인
 
 ---
 
