@@ -14,5 +14,12 @@ CREATE TABLE IF NOT EXISTS reservation (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Initial data: one concert with 100 seats
+-- 기존 테스트 코드용 데이터 유지 (ID: 1)
 INSERT INTO concert (title, stock, version) VALUES ('Concert A', 100, 0);
+
+
+-- K6 부하 테스트용 전용 데이터 추가 (ID: 2, 3, 4)
+-- 재고를 10,000개 정도로 넉넉히 잡아야 '재고 부족'이 아닌 '경합/성능'을 볼 수 있습니다.
+INSERT INTO concert (title, stock, version) VALUES ('K6 No Lock', 10000, 0);       -- id: 2
+INSERT INTO concert (title, stock, version) VALUES ('K6 Pessimistic', 10000, 0); -- id: 3
+INSERT INTO concert (title, stock, version) VALUES ('K6 Optimistic', 10000, 0);  -- id: 4
