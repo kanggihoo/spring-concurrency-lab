@@ -6,11 +6,16 @@ spring:
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      connection-init-sql: "SET lock_timeout = '1s'"
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
+      # javax.persistence.lock.timeout: 1000 # 1초 (단위: ms) (postgresql 기준
+      jakarta.persistence.lock.timeout: 1000
       hibernate:
         format_sql: true
 

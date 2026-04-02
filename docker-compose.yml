@@ -44,6 +44,8 @@ services:
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--web.enable-remote-write-receiver" # k6 Remote Write 수신 활성화
+      - "--enable-feature=native-histograms" # k6의 Native Histogram을 수신하기 위해 필수
+      - "--enable-feature=remote-write-receiver-metadata" # k6에서 보내는 타입/메타데이터를 수신하기 위해 권장
     extra_hosts:
       - "host.docker.internal:host-gateway" # 로컬 Spring Boot 서버 접근용
     restart: unless-stopped
@@ -60,6 +62,8 @@ services:
       - GF_SECURITY_ADMIN_USER=admin
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
 
   k6:
@@ -71,6 +75,7 @@ services:
       - prometheus
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
+      - K6_PROMETHEUS_RW_TREND_AS_NATIVE_HISTOGRAM=true
     # k6 로드 테스트를 실행하려면 아래 커맨드를 덮어쓰거나 프로필 모드로 실행하세요.
     command: run --out experimental-prometheus-rw /scripts/simple_test.js
     extra_hosts:
