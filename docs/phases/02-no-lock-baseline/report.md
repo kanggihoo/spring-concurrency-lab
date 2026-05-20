@@ -14,7 +14,7 @@ Not measured yet.
 
 ## Consistency Result
 
-| reservation_count | stock_deducted | inconsistency | Evidence |
+| reservation_count | deducted_seats | seat_count_inconsistency | Evidence |
 |---:|---:|---:|---|
 | | | | |
 

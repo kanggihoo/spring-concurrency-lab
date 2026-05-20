@@ -10,7 +10,7 @@
 
 - `POST /api/reservations`
 - `POST /api/test/reset`
-- `concert.stock`
+- `concert.remainingSeats`
 - `reservation`
 
 ## Out of Scope
@@ -22,7 +22,7 @@
 ## Completion Gate
 
 - [ ] no-lock 동시성 테스트가 있다.
-- [ ] overselling 또는 inconsistency를 재현했다.
+- [ ] seat count inconsistency를 재현했다.
 - [ ] k6 결과를 evidence에 저장했다.
 - [ ] 정합성 검증 SQL 결과를 evidence에 저장했다.
 - [ ] `report.md`에 baseline 수치를 기록했다.

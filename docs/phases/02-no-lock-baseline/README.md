@@ -6,7 +6,7 @@ Planned
 
 ## Goal
 
-락 없는 예약 구현에서 lost update와 overselling을 재현하고 기준 성능을 측정한다.
+락 없는 예약 구현에서 lost update와 seat count inconsistency를 재현하고 기준 성능을 측정한다.
 
 ## Documents
 

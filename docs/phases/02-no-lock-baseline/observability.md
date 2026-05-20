@@ -10,7 +10,7 @@
 | k6 | p95 / p99 | 기준 지연 시간 |
 | k6 | error rate | 실패율 |
 | SQL | reservation count | 생성된 예약 수 |
-| SQL | stock deducted | 차감된 재고 |
+| SQL | deducted seats | 차감된 좌석 수 |
 | SQL | inconsistency | 정합성 오류 크기 |
 | Spring | Hikari active/pending | baseline DB 연결 사용량 |
 
@@ -19,7 +19,8 @@
 ```sql
 SELECT
     (SELECT COUNT(*) FROM reservation WHERE concert_id = 1) AS reservation_count,
-    (SELECT 100 - stock FROM concert WHERE id = 1) AS stock_deducted,
+    (SELECT 100 - remaining_seats FROM concert WHERE id = 1) AS deducted_seats,
     (SELECT COUNT(*) FROM reservation WHERE concert_id = 1)
-        - (SELECT 100 - stock FROM concert WHERE id = 1) AS inconsistency;
+        + (SELECT remaining_seats FROM concert WHERE id = 1)
+        - 100 AS seat_count_inconsistency;
 ```

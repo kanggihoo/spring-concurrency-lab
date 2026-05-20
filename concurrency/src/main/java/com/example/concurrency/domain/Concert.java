@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * 콘서트 엔티티 — 예약 가능한 좌석(stock)을 관리한다.
+ * 콘서트 엔티티 — 잔여 좌석 수를 관리한다.
  * Phase 2에서는 @Version 없이 동시성 제어 없음 (의도적 Race Condition).
  */
 @Entity
@@ -23,21 +23,21 @@ public class Concert {
     private String title;
 
     // 남은 좌석 수 — 동시 접근 시 정합성이 깨질 수 있음
-    @Column(nullable = false)
-    private int stock;
+    @Column(name = "remaining_seats", nullable = false)
+    private int remainingSeats;
 
-    public Concert(String title, int stock) {
+    public Concert(String title, int remainingSeats) {
         this.title = title;
-        this.stock = stock;
+        this.remainingSeats = remainingSeats;
     }
 
     // 테스트 초기화용
-    public void setStock(int stock) {
-        this.stock = stock;
+    public void resetRemainingSeats(int remainingSeats) {
+        this.remainingSeats = remainingSeats;
     }
 
-    // 재고 1 차감 — 락 없이 호출 시 lost update 발생 가능
-    public void decreaseStock() {
-        this.stock--;
+    // 잔여 좌석 수 1 차감 — 락 없이 호출 시 lost update 발생 가능
+    public void decreaseRemainingSeats() {
+        this.remainingSeats--;
     }
 }

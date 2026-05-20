@@ -32,7 +32,7 @@ public class TestController {
     }
 
     /**
-     * Reset endpoint for k6 load testing — deletes all reservations and resets concert stock to 100.
+     * Reset endpoint for k6 load testing.
      */
     @PostMapping("/reset")
     @Transactional
@@ -40,15 +40,15 @@ public class TestController {
         // 1. delete all reservations
         reservationRepository.deleteAll();
 
-        // 2. reset concert stock (create if not exists)
+        // 2. reset remaining seats (create if not exists)
         Concert concert = concertRepository.findById(1L).orElse(null);
         if (concert == null) {
             concert = new Concert("Concert A", 100);
         } else {
-            concert.setStock(100);
+            concert.resetRemainingSeats(100);
         }
         concertRepository.save(concert);
 
-        return ResponseEntity.ok(Map.of("status", "reset", "stock", "100"));
+        return ResponseEntity.ok(Map.of("status", "reset", "remainingSeats", "100"));
     }
 }
