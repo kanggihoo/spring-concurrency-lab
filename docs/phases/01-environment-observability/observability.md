@@ -1,16 +1,18 @@
 # Observability
 
-이 문서는 기본 템플릿이다. Phase 성격에 따라 섹션을 추가하거나 삭제할 수 있다.
+Phase 1은 전략별 성능 분석이 아니라 관측 경로가 살아 있는지 확인한다.
 
-## Metrics
+## Checks
 
-| Area | Metric | Purpose |
+| Area | Check | Success |
 |---|---|---|
-| Spring | `/actuator/prometheus` | 애플리케이션 지표 노출 확인 |
-| PostgreSQL | exporter target up | DB 지표 수집 확인 |
-| Redis | exporter target up | Redis 지표 수집 확인 |
-| k6 | smoke test result | 부하 테스트 경로 확인 |
+| Spring | `/actuator/prometheus` | HTTP 200과 Prometheus text output |
+| PostgreSQL | postgres_exporter target | Prometheus target `UP` |
+| Prometheus | `spring`, `postgres` targets | active target health `up` |
+| Grafana | UI and datasource access | 로그인 및 Prometheus 데이터 접근 가능 |
+| k6 | `simple_test.js` smoke test | status check 통과 또는 실패 원인 기록 |
+| Reset | `/api/test/reset` 또는 SQL | 반복 실험 전 DB 상태 초기화 가능 |
 
 ## Evidence
 
-Prometheus target 화면, Grafana dashboard 화면, k6 smoke result를 필요 시 evidence에 저장한다.
+기본 evidence는 `report.md`에 기록한다. 스크린샷이나 로그가 판단에 필요하면 `docs/evidence/01-environment-observability/` 아래에 저장한다.

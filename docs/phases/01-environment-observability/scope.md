@@ -1,30 +1,30 @@
 # Scope
 
-이 문서는 기본 템플릿이다. Phase 성격에 따라 섹션을 추가하거나 삭제할 수 있다.
-
 ## Goal
 
-실험 전 공통 환경과 관측 경로를 검증한다.
+Phase 2 No Lock Baseline을 실행하기 전에 최소 관측 환경과 반복 실행 경로를 검증한다.
 
 ## Target
 
 - Spring Boot actuator metrics
 - PostgreSQL exporter
-- Redis exporter
 - Prometheus targets
 - Grafana dashboard
-- k6 실행 경로
+- k6 smoke test 실행 경로
+- reset API 또는 SQL 기반 DB 초기화 절차
 
 ## Out of Scope
 
 - 동시성 전략 구현
 - 성능 비교 결론 작성
 - WireMock 실험 구현
+- Redis 및 Redis exporter 관측
 
 ## Completion Gate
 
-- [ ] Spring `/actuator/prometheus` 응답을 확인했다.
-- [ ] Prometheus target 상태를 확인했다.
-- [ ] Grafana 접속과 dashboard 접근을 확인했다.
-- [ ] reset API 또는 SQL 초기화 절차를 확인했다.
-- [ ] `report.md`에 환경 점검 결과를 기록했다.
+- [x] Spring `/actuator/prometheus` 응답을 확인했다.
+- [x] Prometheus `spring`, `postgres` target 상태를 확인했다.
+- [x] Grafana 접속과 dashboard 접근을 확인했다.
+- [x] k6 smoke test 실행 경로를 확인했다.
+- [x] reset API 또는 SQL 기반 DB 초기화 절차를 확인했다.
+- [x] `report.md`에 환경 점검 결과를 기록했다.

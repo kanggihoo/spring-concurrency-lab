@@ -2,11 +2,13 @@
 
 ## Status
 
-Planned
+Completed
 
 ## Goal
 
-동시성 실험을 반복 측정할 수 있도록 애플리케이션, 데이터베이스, Redis, k6, Prometheus, Grafana 환경을 정리한다.
+Phase 2 No Lock Baseline을 반복 측정할 수 있도록 Spring Boot, PostgreSQL, k6, Prometheus, Grafana 환경과 관측 경로를 정리한다.
+
+Redis 관측은 Phase 5에서 Redis 전략을 다룰 때 추가한다.
 
 ## Documents
 
@@ -17,4 +19,4 @@ Planned
 
 ## Evidence
 
-환경 점검 evidence는 필요 시 `docs/evidence/` 아래에 Phase 목적에 맞게 추가한다.
+환경 점검 evidence는 필요 시 `docs/evidence/01-environment-observability/` 아래에 추가한다. Phase 1의 기본 판정은 `report.md` 기록으로 한다.
