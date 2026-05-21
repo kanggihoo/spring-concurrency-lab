@@ -46,17 +46,17 @@ class ReservationConcurrencyTest {
         reservationRepository.deleteAll();
         Concert concert = concertRepository.findById(1L).orElse(null);
         if (concert == null) {
-            concert = new Concert("Concert A", 100); // Concert(title , stock)
+            concert = new Concert("Concert A", 100);
             concertRepository.save(concert);
         } else {
-            concert.setStock(100);
+            concert.resetRemainingSeats(100);
             concertRepository.save(concert);
         }
     }
 
     @Test
-    @DisplayName("락 없이 100명 동시 예약 시 overselling이 발생한다")
-    void noLock_concurrency_causes_overselling() throws InterruptedException {
+    @DisplayName("No-lock concurrent reservations cause seat count inconsistency")
+    void noLock_concurrency_causes_seat_count_inconsistency() throws InterruptedException {
         int threadCount = 100;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -77,11 +77,10 @@ class ReservationConcurrencyTest {
         Concert concert = concertRepository.findById(1L).orElseThrow();
         long reservationCount = reservationRepository.countByConcertId(1L);
 
-        System.out.println("Remaining stock: " + concert.getStock());
+        System.out.println("Remaining seats: " + concert.getRemainingSeats());
         System.out.println("Reservation count: " + reservationCount);
-        System.out.println("Integrity error: " + (reservationCount - (100 - concert.getStock())));
+        System.out.println("Seat count inconsistency: " + (reservationCount + concert.getRemainingSeats() - 100));
 
-        // overselling check: reservationCount + stock != 100 means data integrity is broken
-        assertThat(reservationCount + concert.getStock()).isNotEqualTo(100);
+        assertThat(reservationCount + concert.getRemainingSeats()).isNotEqualTo(100);
     }
 }

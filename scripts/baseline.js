@@ -29,7 +29,7 @@ export const options = {
   },
 };
 
-// Reset data before test — clear reservations and restore stock to 100
+// Reset data before test — clear reservations and restore remaining seats to 100
 export function setup() {
   const res = http.post(`${BASE_URL}/api/test/reset`);
   check(res, {
