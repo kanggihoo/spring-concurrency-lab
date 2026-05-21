@@ -1,0 +1,329 @@
+# 004. Playwright Grafana Capture
+
+### Task 004: Add Scrolling Grafana Capture Script
+
+**Files:**
+- Create: `scripts/capture-grafana-dashboard.js`
+- Modify: `package.json`
+
+- [ ] **Step 1: Install Node dependencies**
+
+Run:
+
+```bash
+npm install
+```
+
+Expected:
+
+- `package-lock.json` is created
+- `node_modules/` is created locally but remains untracked
+
+- [ ] **Step 2: Create the capture script**
+
+Create `scripts/capture-grafana-dashboard.js`:
+
+```js
+import { mkdir, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const root = dirname(dirname(fileURLToPath(import.meta.url)));
+
+const dashboards = {
+  overview: {
+    uid: 'concurrency-lab-overview',
+    slug: 'concurrency-lab-overview',
+  },
+  phase2: {
+    uid: 'phase-02-no-lock-baseline',
+    slug: 'phase-2-no-lock-baseline',
+  },
+};
+
+const defaults = {
+  dashboard: 'phase2',
+  baseUrl: 'http://localhost:3000',
+  selector: '[data-testid="data-testid DashboardEditPaneSplitter body container"]',
+  partsDir: 'docs/evidence/02-no-lock-baseline/grafana/parts',
+  viewportWidth: 1600,
+  viewportHeight: 965,
+  waitMs: 1000,
+  phase: 'phase-02',
+  scenario: 'no-lock',
+  preset: 'baseline',
+  pool: 'default',
+  uri: '$__all',
+  table: '$__all',
+  from: 'now-30m',
+  to: 'now',
+  refresh: '10s',
+  live: false,
+};
+
+function parseArgs(argv) {
+  const args = { ...defaults };
+
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    const value = argv[i + 1];
+
+    if (arg === '--dashboard') args.dashboard = value;
+    else if (arg === '--base-url') args.baseUrl = value;
+    else if (arg === '--selector') args.selector = value;
+    else if (arg === '--parts-dir') args.partsDir = value;
+    else if (arg === '--viewport-width') args.viewportWidth = Number(value);
+    else if (arg === '--viewport-height') args.viewportHeight = Number(value);
+    else if (arg === '--wait-ms') args.waitMs = Number(value);
+    else if (arg === '--phase') args.phase = value;
+    else if (arg === '--scenario') args.scenario = value;
+    else if (arg === '--preset') args.preset = value;
+    else if (arg === '--pool') args.pool = value;
+    else if (arg === '--uri') args.uri = value;
+    else if (arg === '--table') args.table = value;
+    else if (arg === '--from') args.from = value;
+    else if (arg === '--to') args.to = value;
+    else if (arg === '--refresh') args.refresh = value;
+    else if (arg === '--live') {
+      args.live = true;
+      i -= 1;
+    } else if (arg === '--help') {
+      printHelp();
+      process.exit(0);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
+    }
+
+    i += 1;
+  }
+
+  return args;
+}
+
+function printHelp() {
+  console.log(`Usage: node scripts/capture-grafana-dashboard.js [options]
+
+Options:
+  --dashboard <overview|phase2>  Dashboard to capture
+  --base-url <url>               Grafana base URL, default http://localhost:3000
+  --selector <selector>          Dashboard scroll container selector
+  --parts-dir <path>             Directory for screenshot parts
+  --viewport-width <number>      Browser viewport width, default 1600
+  --viewport-height <number>     Browser viewport height, default 965
+  --wait-ms <number>             Wait after render/scroll, default 1000
+  --phase <phase-id>             Dashboard phase variable
+  --scenario <name>              Dashboard scenario variable
+  --preset <name>                Dashboard preset variable
+  --pool <name>                  Dashboard pool variable
+  --uri <pattern>                Dashboard URI variable
+  --table <pattern>              Dashboard table variable
+  --from <time>                  Grafana time range start
+  --to <time>                    Grafana time range end
+  --refresh <value>              Grafana refresh value
+  --live                         Allow live now-30m capture
+`);
+}
+
+function buildDashboardUrl(args) {
+  const dashboard = dashboards[args.dashboard];
+  if (!dashboard) {
+    throw new Error(`Unsupported dashboard: ${args.dashboard}`);
+  }
+
+  if (!args.live && (args.from === 'now-30m' || args.to === 'now')) {
+    throw new Error('Live capture requires --live. Pass explicit --from/--to for fixed evidence windows.');
+  }
+
+  const url = new URL(`/d/${dashboard.uid}/${dashboard.slug}`, args.baseUrl);
+  url.searchParams.set('orgId', '1');
+  url.searchParams.set('from', args.from);
+  url.searchParams.set('to', args.to);
+  url.searchParams.set('timezone', 'browser');
+  url.searchParams.set('var-phase', args.phase);
+  url.searchParams.set('var-scenario', args.scenario);
+  url.searchParams.set('var-preset', args.preset);
+  url.searchParams.set('var-pool', args.pool);
+  url.searchParams.set('var-uri', args.uri);
+  url.searchParams.set('var-table', args.table);
+  url.searchParams.set('refresh', args.refresh);
+  return url.toString();
+}
+
+async function wait(ms) {
+  await new Promise((resolveWait) => setTimeout(resolveWait, ms));
+}
+
+async function loadChromium() {
+  const mod = await import('playwright');
+  return mod.chromium;
+}
+
+function buildCaptureOffsets({ scrollHeight, clientHeight }) {
+  if (scrollHeight <= clientHeight) {
+    return [0];
+  }
+
+  const offsets = [];
+  const maxScrollTop = scrollHeight - clientHeight;
+  for (let offset = 0; offset < maxScrollTop; offset += clientHeight) {
+    offsets.push(offset);
+  }
+  if (offsets.at(-1) !== maxScrollTop) {
+    offsets.push(maxScrollTop);
+  }
+  return offsets;
+}
+
+async function getContainerInfo(page, selector) {
+  return page.locator(selector).evaluate((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      scrollTop: Math.round(el.scrollTop),
+      scrollHeight: Math.round(el.scrollHeight),
+      clientHeight: Math.round(el.clientHeight),
+      clientWidth: Math.round(el.clientWidth),
+      rect: {
+        x: Math.round(rect.x),
+        y: Math.round(rect.y),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      },
+    };
+  });
+}
+
+async function capturePart({ page, selector, offset, index, partsDir, waitMs }) {
+  const info = await page.locator(selector).evaluate((el, requestedOffset) => {
+    el.scrollTop = requestedOffset;
+    el.dispatchEvent(new Event('scroll', { bubbles: true }));
+    const rect = el.getBoundingClientRect();
+    return {
+      requestedOffset,
+      actualOffset: Math.round(el.scrollTop),
+      scrollHeight: Math.round(el.scrollHeight),
+      clientHeight: Math.round(el.clientHeight),
+      clientWidth: Math.round(el.clientWidth),
+      rect: {
+        x: Math.round(rect.x),
+        y: Math.round(rect.y),
+        width: Math.round(rect.width),
+        height: Math.round(rect.height),
+      },
+    };
+  }, offset);
+
+  await wait(waitMs);
+
+  const fileName = `part-${String(index + 1).padStart(2, '0')}-scroll${info.actualOffset}.png`;
+  const filePath = join(partsDir, fileName);
+  await page.screenshot({ path: filePath, clip: info.rect });
+  return { ...info, file: fileName };
+}
+
+async function main() {
+  const args = parseArgs(process.argv.slice(2));
+  const partsDir = resolve(root, args.partsDir);
+  const url = buildDashboardUrl(args);
+  const chromium = await loadChromium();
+  const browser = await chromium.launch({ headless: true });
+
+  try {
+    const context = await browser.newContext({
+      viewport: { width: args.viewportWidth, height: args.viewportHeight },
+    });
+    const page = await context.newPage();
+
+    await page.goto(url, { waitUntil: 'domcontentloaded' });
+    await page.locator(args.selector).waitFor({ state: 'visible', timeout: 30_000 });
+    await wait(args.waitMs);
+
+    const initial = await getContainerInfo(page, args.selector);
+    const offsets = buildCaptureOffsets(initial);
+
+    await rm(partsDir, { recursive: true, force: true });
+    await mkdir(partsDir, { recursive: true });
+
+    const captures = [];
+    for (let index = 0; index < offsets.length; index += 1) {
+      captures.push(await capturePart({
+        page,
+        selector: args.selector,
+        offset: offsets[index],
+        index,
+        partsDir,
+        waitMs: args.waitMs,
+      }));
+    }
+
+    const metadata = {
+      url,
+      selector: args.selector,
+      dashboard: args.dashboard,
+      variables: {
+        phase: args.phase,
+        scenario: args.scenario,
+        preset: args.preset,
+        pool: args.pool,
+        uri: args.uri,
+        table: args.table,
+      },
+      viewport: {
+        width: args.viewportWidth,
+        height: args.viewportHeight,
+      },
+      initial,
+      offsets,
+      captures,
+    };
+
+    await writeFile(join(partsDir, 'capture-meta.json'), `${JSON.stringify(metadata, null, 2)}\n`);
+    console.log(`url=${url}`);
+    console.log(`captures=${captures.length}`);
+    console.log(`partsDir=${partsDir}`);
+    console.log(`meta=${join(partsDir, 'capture-meta.json')}`);
+  } finally {
+    await browser.close();
+  }
+}
+
+main().catch((error) => {
+  console.error(error.message);
+  process.exit(1);
+});
+```
+
+- [ ] **Step 3: Run help output**
+
+Run:
+
+```bash
+npm run grafana:capture -- --help
+```
+
+Expected: command prints usage and options.
+
+- [ ] **Step 4: Run capture against local Grafana with user present**
+
+Start Grafana first:
+
+```bash
+docker compose up -d prometheus grafana
+```
+
+Run:
+
+```bash
+npm run grafana:capture:phase2
+```
+
+Expected:
+
+- if the default selector works, screenshot parts appear under `docs/evidence/02-no-lock-baseline/grafana/parts/`
+- if the selector fails, inspect Grafana with the user and rerun with `--selector "<actual selector>"`
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add package.json package-lock.json scripts/capture-grafana-dashboard.js
+git commit -m "chore: add grafana capture script"
+```
