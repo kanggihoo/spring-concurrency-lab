@@ -124,7 +124,7 @@ Run:
 
 ```bash
 curl -G "http://localhost:9090/api/v1/query" \
-  --data-urlencode 'query=max(concert_seat_count_inconsistency{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"})'
+  --data-urlencode 'query=max(k6_concert_seat_count_inconsistency{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"})'
 ```
 
 Expected: Prometheus returns a numeric value. If it returns no data, replace k6 `teardown()` with an explicit final snapshot scenario in a follow-up task.
