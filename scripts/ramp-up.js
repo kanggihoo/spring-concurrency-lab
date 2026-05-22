@@ -15,8 +15,14 @@ import { check } from "k6";
 const BASE_URL = "http://host.docker.internal:8080";
 
 export const options = {
+  tags: {
+    phase: "phase-02",
+    scenario: "no-lock",
+    preset: "ramp-up",
+    pool: "default",
+  },
   scenarios: {
-    ramp: {
+    "no-lock": {
       executor: "ramping-vus",
       startVUs: 10,
       stages: [

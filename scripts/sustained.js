@@ -15,8 +15,14 @@ import { check, sleep } from "k6";
 const BASE_URL = "http://host.docker.internal:8080";
 
 export const options = {
+  tags: {
+    phase: "phase-02",
+    scenario: "no-lock",
+    preset: "sustained",
+    pool: "default",
+  },
   scenarios: {
-    sustained: {
+    "no-lock": {
       executor: "constant-vus",
       vus: 200,
       duration: "5m",

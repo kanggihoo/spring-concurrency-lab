@@ -341,10 +341,10 @@ function buildPhase2Dashboard() {
   panels.push(b.row('Consistency Snapshot', y));
   y += 1;
   panels.push(
-    b.stat('Reservation Count', `max(concert_reservation_count{${k6Filter}})`, 0, y, 6),
-    b.stat('Remaining Seats', `max(concert_remaining_seats{${k6Filter}})`, 6, y, 6),
-    b.stat('Seat Count Inconsistency', `max(concert_seat_count_inconsistency{${k6Filter}})`, 12, y, 6),
-    b.stat('Overbooked', `max(concert_overbooked{${k6Filter}})`, 18, y, 6),
+    b.stat('Reservation Count', `max(k6_concert_reservation_count{${k6Filter}})`, 0, y, 6),
+    b.stat('Remaining Seats', `max(k6_concert_remaining_seats{${k6Filter}})`, 6, y, 6),
+    b.stat('Seat Count Inconsistency', `max(k6_concert_seat_count_inconsistency{${k6Filter}})`, 12, y, 6),
+    b.stat('Overbooked', `max(k6_concert_overbooked{${k6Filter}})`, 18, y, 6),
   );
   y += 4;
 

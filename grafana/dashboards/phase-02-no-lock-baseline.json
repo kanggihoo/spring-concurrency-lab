@@ -368,7 +368,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(max(concert_reservation_count{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
+          "expr": "(max(k6_concert_reservation_count{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "E"
         }
@@ -433,7 +433,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(max(concert_remaining_seats{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
+          "expr": "(max(k6_concert_remaining_seats{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "F"
         }
@@ -498,7 +498,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(max(concert_seat_count_inconsistency{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
+          "expr": "(max(k6_concert_seat_count_inconsistency{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "G"
         }
@@ -563,7 +563,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(max(concert_overbooked{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
+          "expr": "(max(k6_concert_overbooked{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "H"
         }
