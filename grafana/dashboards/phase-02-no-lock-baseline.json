@@ -76,7 +76,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "max"
           ],
           "fields": "",
           "values": false
@@ -92,7 +92,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(sum(rate(http_server_requests_seconds_count{uri=\"/api/reservations\"}[$__rate_interval]))) or on() vector(0)",
+          "expr": "(sum(rate(k6_http_reqs_total{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"}[$__rate_interval]))) or on() vector(0)",
           "range": true,
           "refId": "A"
         }
@@ -142,7 +142,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "max"
           ],
           "fields": "",
           "values": false
@@ -158,7 +158,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/reservations\"}[$__rate_interval])))) or on() vector(0)",
+          "expr": "(max(k6_http_req_duration_p95{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "B"
         }
@@ -208,7 +208,7 @@
         "orientation": "auto",
         "reduceOptions": {
           "calcs": [
-            "lastNotNull"
+            "max"
           ],
           "fields": "",
           "values": false
@@ -224,7 +224,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{uri=\"/api/reservations\"}[$__rate_interval])))) or on() vector(0)",
+          "expr": "(max(k6_http_req_duration_p99{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "range": true,
           "refId": "C"
         }
@@ -704,7 +704,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "(histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"}[$__rate_interval])))) or on() vector(0)",
+          "expr": "(max(k6_http_req_duration_p95{phase=\"$phase\", scenario=\"$scenario\", preset=\"$preset\", pool=\"$pool\"})) or on() vector(0)",
           "legendFormat": "p95_latency",
           "range": true,
           "refId": "L"

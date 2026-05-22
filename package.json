@@ -6,7 +6,9 @@
   "scripts": {
     "grafana:generate": "node scripts/generate-grafana-dashboards.js",
     "grafana:capture": "node scripts/capture-grafana-dashboard.js",
-    "grafana:capture:phase2": "node scripts/capture-grafana-dashboard.js --dashboard phase2 --phase phase-02 --scenario no-lock --preset baseline --pool default --live",
+    "grafana:capture:phase2": "node scripts/capture-grafana-dashboard.js --dashboard phase2 --phase phase-02 --scenario no-lock --preset baseline --pool default --run-window auto",
+    "grafana:stitch": "python scripts/stitch-grafana-captures.py",
+    "grafana:stitch:phase2": "python scripts/stitch-grafana-captures.py --phase 02-no-lock-baseline",
     "k6:verify-reservation-responses": "node scripts/verify-k6-reservation-responses.js"
   },
   "devDependencies": {

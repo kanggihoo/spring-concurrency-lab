@@ -53,7 +53,7 @@ function createBuilder() {
     };
   }
 
-  function stat(title, expr, x, y, w = 6, unit = undefined) {
+  function stat(title, expr, x, y, w = 6, unit = undefined, calc = 'lastNotNull') {
     return {
       datasource,
       fieldConfig: {
@@ -79,7 +79,7 @@ function createBuilder() {
         justifyMode: 'auto',
         orientation: 'auto',
         reduceOptions: {
-          calcs: ['lastNotNull'],
+          calcs: [calc],
           fields: '',
           values: false,
         },
@@ -231,9 +231,9 @@ function buildOverviewDashboard() {
   panels.push(b.row('Run Summary', y));
   y += 1;
   panels.push(
-    b.stat('k6 p95', `histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds{${k6Filter}}[$__rate_interval])))`, 0, y, 6, 's'),
-    b.stat('k6 p99', `histogram_quantile(0.99, sum(rate(k6_http_req_duration_seconds{${k6Filter}}[$__rate_interval])))`, 6, y, 6, 's'),
-    b.stat('Actual RPS', `sum(rate(k6_http_reqs_total{${k6Filter}}[$__rate_interval]))`, 12, y, 6, 'reqps'),
+    b.stat('k6 p95', `max(k6_http_req_duration_p95{${k6Filter}})`, 0, y, 6, 's', 'max'),
+    b.stat('k6 p99', `max(k6_http_req_duration_p99{${k6Filter}})`, 6, y, 6, 's', 'max'),
+    b.stat('Actual RPS', `sum(rate(k6_http_reqs_total{${k6Filter}}[$__rate_interval]))`, 12, y, 6, 'reqps', 'max'),
     b.stat('Error Rate', `avg(k6_http_req_failed_rate{${k6Filter}}) * 100`, 18, y, 6, 'percent'),
     b.stat('Checks Success', `avg(k6_checks_rate{${k6Filter}}) * 100`, 0, y + 4, 6, 'percent'),
     b.stat('Dropped Iterations', `sum(increase(k6_dropped_iterations_total{${k6Filter}}[$__range]))`, 6, y + 4, 6),
@@ -249,15 +249,15 @@ function buildOverviewDashboard() {
       b.target(`sum(k6_vus{${k6Filter}})`, 'vus'),
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}}[$__rate_interval]))`, 'rps'),
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}, expected_response="false"}[$__rate_interval]))`, 'error_rps'),
-      b.target(`histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds{${k6Filter}}[$__rate_interval])))`, 'p95_latency'),
+      b.target(`max(k6_http_req_duration_p95{${k6Filter}})`, 'p95_latency'),
     ], 0, y, 24, 10, [], 'multi'),
     b.timeSeriesMulti('HTTP Request Rate', [
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}, expected_response="true"}[$__rate_interval]))`, 'success_rps'),
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}, expected_response="false"}[$__rate_interval]))`, 'error_rps'),
     ], 0, y + 10, 12, 8, [], 'multi'),
     b.timeSeriesMulti('Latency and Iteration p95', [
-      b.target(`histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds{${k6Filter}}[$__rate_interval])))`, 'http_p95'),
-      b.target(`histogram_quantile(0.95, sum(rate(k6_iteration_duration_seconds{${k6Filter}}[$__rate_interval])))`, 'iteration_p95'),
+      b.target(`max(k6_http_req_duration_p95{${k6Filter}})`, 'http_p95'),
+      b.target(`max(k6_iteration_duration_p95{${k6Filter}})`, 'iteration_p95'),
     ], 12, y + 10, 12, 8, [], 'multi'),
     b.timeSeriesMulti('Checks Success Rate', [
       b.target(`avg by (check) (k6_checks_rate{${k6Filter}}) * 100`, '{{check}}'),
@@ -331,9 +331,9 @@ function buildPhase2Dashboard() {
   panels.push(b.row('Reservation Run Summary', y));
   y += 1;
   panels.push(
-    b.stat('Reservation RPS', `sum(rate(http_server_requests_seconds_count{${reservationUri}}[$__rate_interval]))`, 0, y, 6, 'reqps'),
-    b.stat('Reservation p95', `histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{${reservationUri}}[$__rate_interval])))`, 6, y, 6, 's'),
-    b.stat('Reservation p99', `histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{${reservationUri}}[$__rate_interval])))`, 12, y, 6, 's'),
+    b.stat('Reservation RPS', `sum(rate(k6_http_reqs_total{${k6Filter}}[$__rate_interval]))`, 0, y, 6, 'reqps', 'max'),
+    b.stat('Reservation p95', `max(k6_http_req_duration_p95{${k6Filter}})`, 6, y, 6, 's', 'max'),
+    b.stat('Reservation p99', `max(k6_http_req_duration_p99{${k6Filter}})`, 12, y, 6, 's', 'max'),
     b.stat('5xx Rate', `sum(rate(http_server_requests_seconds_count{${reservationUri}, status=~"5.."}[$__rate_interval]))`, 18, y, 6, 'reqps'),
   );
   y += 4;
@@ -355,7 +355,7 @@ function buildPhase2Dashboard() {
       b.target(`sum(k6_vus{${k6Filter}})`, 'vus'),
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}}[$__rate_interval]))`, 'rps'),
       b.target(`sum(rate(k6_http_reqs_total{${k6Filter}, expected_response="false"}[$__rate_interval]))`, 'error_rps'),
-      b.target(`histogram_quantile(0.95, sum(rate(k6_http_req_duration_seconds{${k6Filter}}[$__rate_interval])))`, 'p95_latency'),
+      b.target(`max(k6_http_req_duration_p95{${k6Filter}})`, 'p95_latency'),
     ], 0, y, 24, 10, [], 'multi'),
     b.timeSeriesMulti('Checks by Name', [
       b.target(`avg by (check) (k6_checks_rate{${k6Filter}}) * 100`, '{{check}}'),

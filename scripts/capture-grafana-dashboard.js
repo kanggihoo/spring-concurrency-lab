@@ -1,4 +1,4 @@
-import { mkdir, rename, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { basename, dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -34,6 +34,7 @@ const defaults = {
   to: 'now',
   refresh: '10s',
   live: false,
+  runWindow: 'auto',
 };
 
 function parseArgs(argv) {
@@ -55,6 +56,7 @@ function parseArgs(argv) {
     '--from',
     '--to',
     '--refresh',
+    '--run-window',
   ]);
 
   for (let i = 0; i < argv.length; i += 1) {
@@ -94,6 +96,7 @@ function parseArgs(argv) {
     else if (arg === '--from') args.from = value;
     else if (arg === '--to') args.to = value;
     else if (arg === '--refresh') args.refresh = value;
+    else if (arg === '--run-window') args.runWindow = value;
 
     i += 1;
   }
@@ -130,8 +133,78 @@ Options:
   --from <time>                  Grafana time range start
   --to <time>                    Grafana time range end
   --refresh <value>              Grafana refresh value
+  --run-window <path|auto|0>      Read Grafana from/to from k6 run-window JSON, default auto
   --live                         Allow live now-30m capture
 `);
+}
+
+async function pathExists(path) {
+  try {
+    await stat(path);
+    return true;
+  } catch (error) {
+    if (error.code === 'ENOENT') return false;
+    throw error;
+  }
+}
+
+function defaultRunWindowDir(args) {
+  if (args.dashboard === 'phase2') {
+    return resolve(root, 'docs/evidence/02-no-lock-baseline/grafana');
+  }
+  return resolve(root, 'docs/evidence');
+}
+
+async function resolveLatestRunWindow(args) {
+  const dir = defaultRunWindowDir(args);
+  if (!(await pathExists(dir))) {
+    throw new Error(`No run-window directory found: ${dir}`);
+  }
+
+  const entries = await readdir(dir, { withFileTypes: true });
+  const candidates = [];
+  for (const entry of entries) {
+    if (!entry.isFile() || !entry.name.startsWith('run-window-') || !entry.name.endsWith('.json')) {
+      continue;
+    }
+    const fullPath = join(dir, entry.name);
+    candidates.push({ path: fullPath, stats: await stat(fullPath) });
+  }
+
+  if (candidates.length === 0) {
+    throw new Error(`No run-window JSON found in ${dir}. Run k6/run.sh first or pass --run-window 0 --live.`);
+  }
+
+  candidates.sort((a, b) => b.stats.mtimeMs - a.stats.mtimeMs);
+  return candidates[0].path;
+}
+
+async function applyRunWindow(args) {
+  if (args.runWindow === '0') {
+    return args;
+  }
+
+  const runWindowPath = args.runWindow === 'auto'
+    ? await resolveLatestRunWindow(args)
+    : resolve(root, args.runWindow);
+
+  const runWindow = JSON.parse(await readFile(runWindowPath, 'utf8'));
+  const { grafanaFrom, grafanaTo } = runWindow;
+
+  if (!Number.isFinite(grafanaFrom) || !Number.isFinite(grafanaTo)) {
+    throw new Error(`Invalid run-window JSON, expected numeric grafanaFrom/grafanaTo: ${runWindowPath}`);
+  }
+
+  return {
+    ...args,
+    from: String(grafanaFrom),
+    to: String(grafanaTo),
+    phase: runWindow.phase || args.phase,
+    scenario: runWindow.scenario || args.scenario,
+    preset: runWindow.preset || args.preset,
+    pool: runWindow.pool || args.pool,
+    runWindowPath,
+  };
 }
 
 function buildDashboardUrl(args) {
@@ -260,7 +333,7 @@ function validateScreenshotClip(rect, viewport) {
 }
 
 async function main() {
-  const args = parseArgs(process.argv.slice(2));
+  const args = await applyRunWindow(parseArgs(process.argv.slice(2)));
   const partsDir = resolvePartsDir(args.partsDir);
   const parentDir = dirname(partsDir);
   const tempPartsDir = join(parentDir, `.tmp-${basename(partsDir)}-${Date.now()}`);
@@ -301,6 +374,7 @@ async function main() {
 
     const metadata = {
       url,
+      runWindow: args.runWindowPath,
       selector: args.selector,
       dashboard: args.dashboard,
       variables: {

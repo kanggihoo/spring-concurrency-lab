@@ -10,6 +10,8 @@
 | k6 | p95 / p99 | 기준 지연 시간 |
 | k6 | error rate | 실패율 |
 | k6 | `k6_http_reqs_total{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | baseline request count |
+| k6 | `k6_http_req_duration_p95{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | k6 p95 latency from Prometheus remote write trend stats |
+| k6 | `k6_http_req_duration_p99{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | k6 p99 latency from Prometheus remote write trend stats |
 | k6 | `k6_concert_reservation_count{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | consistency snapshot reservation count |
 | k6 | `k6_concert_remaining_seats{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | consistency snapshot remaining seats |
 | k6 | `k6_concert_seat_count_inconsistency{phase="phase-02",scenario="no-lock",preset="baseline",pool="default"}` | consistency gap emitted through k6 Prometheus remote write |
