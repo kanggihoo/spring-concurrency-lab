@@ -11,6 +11,25 @@
 5. 정합성 검증 SQL을 실행한다.
 6. 결과를 `docs/evidence/02-no-lock-baseline/`에 저장한다.
 7. `report.md`에 측정값과 결론을 기록한다.
+8. Generate Grafana dashboards.
+
+   ```bash
+   npm run grafana:generate
+   ```
+
+9. Save SQL consistency evidence.
+
+   ```bash
+   docker compose exec -T postgres psql -U user -d reservation \
+     < scripts/sql/phase2-consistency-check.sql \
+     > docs/evidence/02-no-lock-baseline/sql/baseline-consistency.txt
+   ```
+
+10. Capture Grafana dashboard parts.
+
+   ```bash
+   npm run grafana:capture:phase2
+   ```
 
 ## Related Guides
 
