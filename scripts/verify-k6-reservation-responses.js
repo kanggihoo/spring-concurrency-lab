@@ -1,10 +1,7 @@
 import { readFileSync } from "node:fs";
 
 const scriptPaths = [
-  "scripts/baseline.js",
-  "scripts/spike.js",
-  "scripts/ramp-up.js",
-  "scripts/sustained.js",
+  "k6/reservation-test.js",
 ];
 
 let failures = 0;

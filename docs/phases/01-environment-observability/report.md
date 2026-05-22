@@ -13,7 +13,7 @@ Redis 관측은 이번 Phase의 active gate에서 제외했고, Phase 5 Redis Co
 | Checked At | 2026-05-20 17:35:24 +09:00 |
 | Docker Compose | `docker compose up -d` |
 | Spring Boot | `concurrency/gradlew.bat bootRun --no-daemon` |
-| k6 Smoke | `docker compose --profile test run --rm k6 run --out experimental-prometheus-rw /scripts/simple_test.js` |
+| k6 Smoke | legacy smoke run, replaced by `bash k6/run.sh baseline prometheus` |
 
 ## Environment Check
 
@@ -32,7 +32,7 @@ Redis 관측은 이번 Phase의 active gate에서 제외했고, Phase 5 Redis Co
 
 | Scenario | VU | Duration | Requests | RPS | p95 | p99 | Error Rate |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| `simple_test.js` | 10 | 10s | 810 | 80.389685/s | 27.6ms | 32.64ms | 0.00% |
+| legacy smoke run | 10 | 10s | 810 | 80.389685/s | 27.6ms | 32.64ms | 0.00% |
 
 ## Findings
 

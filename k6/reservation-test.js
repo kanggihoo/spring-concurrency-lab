@@ -1,20 +1,10 @@
-/**
- * 시나리오 1: 기본 동시 부하
- * - 100명이 10초 동안 동시에 예약 요청
- * - 목적: 각 Phase별 기본 성능 수치 측정 (RPS, p95 응답시간, 에러율)
- *
- * 실행:
- *   docker compose -f docker-compose.monitoring.yml --profile k6 run --rm \
- *   k6 run --out experimental-prometheus-rw /scripts/baseline.js
- */
-
 import http from "k6/http";
-import { check } from "k6";
+import { check, sleep } from "k6";
 import { Gauge } from "k6/metrics";
 
-// 테스트 대상 엔드포인트
-// 도커 컨테이너 내부에서 로컬 Spring Boot 서버에 접근하기 위해 host.docker.internal 사용
-const BASE_URL = "http://host.docker.internal:8080";
+const presetPath = __ENV.PRESET || "presets/baseline.json";
+const preset = JSON.parse(open(presetPath));
+const baseUrl = __ENV.BASE_URL || preset.baseUrl || "http://host.docker.internal:8080";
 const reservationResponseCallback = http.expectedStatuses(200, 409);
 
 const reservationCount = new Gauge("concert_reservation_count");
@@ -22,36 +12,71 @@ const remainingSeats = new Gauge("concert_remaining_seats");
 const seatCountInconsistency = new Gauge("concert_seat_count_inconsistency");
 const overbooked = new Gauge("concert_overbooked");
 
+function requiredString(name) {
+  const value = preset[name];
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`Preset ${presetPath} must define non-empty string field: ${name}`);
+  }
+  return value;
+}
+
+function buildScenario() {
+  const executor = requiredString("executor");
+
+  if (executor === "constant-vus") {
+    return {
+      executor,
+      vus: preset.vus,
+      duration: preset.duration,
+    };
+  }
+
+  if (executor === "ramping-vus") {
+    return {
+      executor,
+      startVUs: preset.startVUs || 0,
+      stages: preset.stages,
+    };
+  }
+
+  throw new Error(`Unsupported executor in ${presetPath}: ${executor}`);
+}
+
+const phase = requiredString("phase");
+const scenario = requiredString("scenario");
+const presetName = requiredString("preset");
+const pool = requiredString("pool");
+
 export const options = {
   tags: {
-    phase: "phase-02",
-    scenario: "no-lock",
-    preset: "baseline",
-    pool: "default",
+    phase,
+    scenario,
+    preset: presetName,
+    pool,
   },
   scenarios: {
-    "no-lock": {
-      executor: "constant-vus",
-      vus: 100, // 100명 동시 요청
-      duration: "10s", // 10초간 진행
-    },
+    [scenario]: buildScenario(),
   },
-  thresholds: {
-    http_req_failed: ["rate<0.01"], // 에러율 1% 미만
-    http_req_duration: ["p(95)<1000"], // 95%ile 응답시간 1초 미만
-  },
+  thresholds: preset.thresholds || {},
 };
 
-// Reset data before test — clear reservations and restore remaining seats to 100
 export function setup() {
-  const res = http.post(`${BASE_URL}/api/test/reset`);
+  if (preset.resetBeforeRun === false) {
+    return;
+  }
+
+  const res = http.post(`${baseUrl}/api/test/reset`);
   check(res, {
     "reset OK": (r) => r.status === 200,
   });
 }
 
 export function teardown() {
-  const res = http.get(`${BASE_URL}/api/test/consistency`);
+  if (preset.captureConsistency === false) {
+    return;
+  }
+
+  const res = http.get(`${baseUrl}/api/test/consistency`);
   check(res, {
     "consistency snapshot OK": (r) => r.status === 200,
   });
@@ -102,8 +127,11 @@ export function teardown() {
 
 export default function () {
   const res = http.post(
-    `${BASE_URL}/api/reservations`,
-    JSON.stringify({ concertId: 1, userId: __VU }),
+    `${baseUrl}/api/reservations`,
+    JSON.stringify({
+      concertId: preset.concertId || 1,
+      userId: __VU,
+    }),
     {
       headers: { "Content-Type": "application/json" },
       responseCallback: reservationResponseCallback,
@@ -113,4 +141,8 @@ export default function () {
   check(res, {
     "status 200 or 409": (r) => r.status === 200 || r.status === 409,
   });
+
+  if (preset.sleepSeconds > 0) {
+    sleep(preset.sleepSeconds);
+  }
 }

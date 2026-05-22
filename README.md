@@ -27,9 +27,9 @@
 # 1. 모니터링 인프라 실행 (Prometheus, Grafana, DB) - 백그라운드 구동
 docker compose up -d
 
-# 2. k6 부하 테스트 시뮬레이션 (on-demand)
+# 2. k6 Phase 2 baseline 실행
 # (주의: 로컬 Spring Boot 서버가 8080 포트에서 실행 중이어야 합니다)
-docker compose --profile test up k6
+bash k6/run.sh baseline prometheus
 ```
 
 ## 📖 상세 문서 (Documentation)

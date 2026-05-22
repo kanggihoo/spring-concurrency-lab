@@ -1,0 +1,21 @@
+{
+  "phase": "phase-02",
+  "evidenceDir": "02-no-lock-baseline",
+  "scenario": "no-lock",
+  "preset": "spike",
+  "pool": "default",
+  "executor": "ramping-vus",
+  "startVUs": 0,
+  "stages": [
+    { "duration": "5s", "target": 0 },
+    { "duration": "2s", "target": 500 },
+    { "duration": "10s", "target": 500 },
+    { "duration": "5s", "target": 0 }
+  ],
+  "thresholds": {
+    "http_req_failed": ["rate<0.05"],
+    "http_req_duration": ["p(95)<3000"]
+  },
+  "resetBeforeRun": true,
+  "captureConsistency": false
+}
