@@ -2,37 +2,37 @@
 
 ## 요약
 
-Phase 2 no-lock baseline 흐름에서 Grafana provisioning, k6 Prometheus remote write,
-SQL 증거, Grafana 대시보드 캡처를 모두 활성화한 상태로 측정했다.
+Phase 2 no-lock baseline은 이후 동시성 제어 전략과 비교하기 위한 기준 실행이다. 현재 흐름은 k6, Prometheus, SQL, Grafana evidence를 남길 수 있도록 구성되어 있다.
+
+no-lock 구현은 의도적으로 lost update가 발생할 수 있는 구조다. 따라서 Phase 2의 핵심 evidence는 처리량과 지연 시간뿐 아니라 Seat Count Inconsistency와 Overbooking 발생 여부다.
 
 ## k6 결과
 
 | 시나리오 | VU | RPS | p95 | p99 | 오류율 | 증거 |
 |---|---:|---:|---:|---:|---:|---|
-| baseline | 100 | 약 1,219 req/s | 현재 remote-write series에서 미출력 | 0.649 s | 0.00% (`200`/`409`를 기대 응답으로 처리한 뒤) | Prometheus `k6_http_reqs_total`, `k6_http_req_failed_rate`, `k6_http_req_duration_p99`; Grafana capture parts |
+| baseline | 100 | 1054.47 req/s | 340.28 ms | 403.68 ms | 0.00% | `docs/evidence/02-no-lock-baseline/k6/baseline-prometheus-20260522-171647-summary.json`, `docs/evidence/02-no-lock-baseline/logs/baseline-prometheus-20260522-171647.log`, `docs/evidence/02-no-lock-baseline/grafana/stitched-dashboard.png` |
+
+Phase 2에서는 `200 reserved`와 `409 sold_out`을 모두 정상적인 예약 결과로 본다. 따라서 k6는 두 상태 코드를 모두 expected response로 처리한다.
 
 ## 정합성 결과
 
-| 예약 수 | 차감된 좌석 수 | 좌석 수 불일치 | 증거 |
+| Reservation Count | Remaining Seats | Seat Count Inconsistency | 증거 |
 |---:|---:|---:|---|
-| 1132 | 100 | 1032 | `docs/evidence/02-no-lock-baseline/sql/baseline-consistency.txt`; `k6_concert_seat_count_inconsistency=1032` |
+| 1278 | 0 | 1178 | `docs/evidence/02-no-lock-baseline/sql/baseline-consistency.txt`; `k6_concert_seat_count_inconsistency` |
 
 ## 관찰
 
-- no-lock baseline에서 좌석 수 불일치가 발생했다. 성공한 예약은 1132건이고,
-  초기 좌석 수 100석에서 남은 좌석은 0석까지 감소했다.
-- Raw SQL 증거에서 Overbooking이 확인됐다.
-- k6는 처음에 도메인상 정상 결과인 `409 sold out` 응답을 HTTP 실패로 집계했다.
-  이후 예약 요청에서 `200`과 `409`를 기대 응답으로 처리하도록 수정했고,
-  수정 후 baseline은 `http_req_failed=0.00%`로 완료됐다.
-- Grafana 대시보드 캡처가 완료됐고, 스크린샷 3개와 `capture-meta.json`이 생성됐다.
+- no-lock baseline에서는 Seat Count Inconsistency가 발생해야 한다.
+- k6 지연 시간 evidence는 Prometheus remote write trend stats 기준으로 기록한다.
+  - `k6_http_req_duration_p95`
+  - `k6_http_req_duration_p99`
+- Grafana capture는 최신 `run-window-*.json`을 사용해 k6 실행 구간과 동일한 시간 범위로 캡처해야 한다.
+- SQL evidence는 최종 DB 정합성을 확인하는 기준 근거다.
 
 ## 결정
 
-이번 실행 결과를 Phase 2 no-lock baseline 증거로 사용한다. Phase 3 비교에서는
-좌석 수 불일치와 Overbooking을 줄이는지 확인하면서, Grafana에서 지연 시간과 요청
-처리량을 함께 관찰한다.
+이번 Phase 2 baseline을 Phase 3 DB 동시성 제어 전략의 비교 기준으로 사용한다. Phase 3에서는 Seat Count Inconsistency와 Overbooking이 줄어드는지 확인하고, 그 대가로 발생하는 지연 시간과 처리량 변화를 이 baseline과 비교한다.
 
-## 다음 단계 입력
+## 다음 Phase 입력
 
-Phase 3에서는 DB 기반 동시성 제어 전략을 적용한 결과를 이 baseline 수치와 비교한다.
+Phase 3에서는 동일한 k6 preset 구조, Prometheus label, SQL consistency query, Grafana evidence 흐름을 재사용해 DB 기반 동시성 제어 전략을 비교한다.

@@ -1,0 +1,99 @@
+ Container prometheus Running 
+ Container spring-concurrency-lab-k6-run-cd80d8678286 Creating 
+ Container spring-concurrency-lab-k6-run-cd80d8678286 Created 
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: /k6/reservation-test.js
+        output: Prometheus remote write (http://prometheus:9090/api/v1/write)
+
+     scenarios: (100.00%) 1 scenario, 100 max VUs, 40s max duration (incl. graceful stop):
+              * no-lock: 100 looping VUs for 10s (gracefulStop: 30s)
+
+
+Run       [ 100% ] setup()
+no-lock   [   0% ]
+
+running (02.0s), 100/100 VUs, 279 complete and 0 interrupted iterations
+no-lock   [   9% ] 100 VUs  00.9s/10s
+
+running (03.0s), 100/100 VUs, 734 complete and 0 interrupted iterations
+no-lock   [  19% ] 100 VUs  01.9s/10s
+
+running (04.0s), 100/100 VUs, 1113 complete and 0 interrupted iterations
+no-lock   [  29% ] 100 VUs  02.9s/10s
+
+running (05.0s), 100/100 VUs, 2159 complete and 0 interrupted iterations
+no-lock   [  39% ] 100 VUs  03.9s/10s
+
+running (06.0s), 100/100 VUs, 3812 complete and 0 interrupted iterations
+no-lock   [  49% ] 100 VUs  04.9s/10s
+
+running (07.0s), 100/100 VUs, 5178 complete and 0 interrupted iterations
+no-lock   [  59% ] 100 VUs  05.9s/10s
+
+running (08.0s), 100/100 VUs, 6842 complete and 0 interrupted iterations
+no-lock   [  69% ] 100 VUs  06.9s/10s
+
+running (09.0s), 100/100 VUs, 8495 complete and 0 interrupted iterations
+no-lock   [  79% ] 100 VUs  07.9s/10s
+
+running (10.0s), 100/100 VUs, 10113 complete and 0 interrupted iterations
+no-lock   [  89% ] 100 VUs  08.9s/10s
+
+running (11.0s), 100/100 VUs, 11526 complete and 0 interrupted iterations
+no-lock   [  99% ] 100 VUs  09.9s/10s
+
+
+  █ THRESHOLDS 
+
+    http_req_duration
+    ✓ 'p(95)<1000' p(95)=242.25ms
+
+    http_req_failed
+    ✓ 'rate<0.01' rate=0.00%
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 11804   1054.469775/s
+    checks_succeeded...: 100.00% 11804 out of 11804
+    checks_failed......: 0.00%   0 out of 11804
+
+    ✓ reset OK
+    ✓ status 200 or 409
+    ✓ consistency snapshot OK
+
+    CUSTOM
+    concert_overbooked.................: 1      min=1          max=1   
+    concert_remaining_seats............: 0      min=0          max=0   
+    concert_reservation_count..........: 1278   min=1278       max=1278
+    concert_seat_count_inconsistency...: 1178   min=1178       max=1178
+
+    HTTP
+    http_req_duration..................: avg=84.48ms min=4.07ms med=61.56ms max=1.11s   p(90)=199.8ms  p(95)=242.25ms
+      { expected_response:true }.......: avg=84.48ms min=4.07ms med=61.56ms max=1.11s   p(90)=199.8ms  p(95)=242.25ms
+    http_req_failed....................: 0.00%  0 out of 11804
+    http_reqs..........................: 11804  1054.469775/s
+
+    EXECUTION
+    iteration_duration.................: avg=84.94ms min=4.14ms med=61.83ms max=573.2ms p(90)=200.45ms p(95)=243.76ms
+    iterations.........................: 11802  1054.291112/s
+    vus................................: 100    min=0          max=100 
+    vus_max............................: 100    min=100        max=100 
+
+    NETWORK
+    data_received......................: 1.7 MB 154 kB/s
+    data_sent..........................: 2.1 MB 187 kB/s
+
+
+
+
+running (11.2s), 000/100 VUs, 11802 complete and 0 interrupted iterations
+no-lock ✓ [ 100% ] 100 VUs  10s
