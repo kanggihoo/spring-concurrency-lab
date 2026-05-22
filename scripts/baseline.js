@@ -15,6 +15,7 @@ import { Gauge } from "k6/metrics";
 // 테스트 대상 엔드포인트
 // 도커 컨테이너 내부에서 로컬 Spring Boot 서버에 접근하기 위해 host.docker.internal 사용
 const BASE_URL = "http://host.docker.internal:8080";
+const reservationResponseCallback = http.expectedStatuses(200, 409);
 
 const reservationCount = new Gauge("concert_reservation_count");
 const remainingSeats = new Gauge("concert_remaining_seats");
@@ -103,11 +104,13 @@ export default function () {
   const res = http.post(
     `${BASE_URL}/api/reservations`,
     JSON.stringify({ concertId: 1, userId: __VU }),
-    { headers: { "Content-Type": "application/json" } },
+    {
+      headers: { "Content-Type": "application/json" },
+      responseCallback: reservationResponseCallback,
+    },
   );
 
   check(res, {
-    "status 200": (r) => r.status === 200,
-    "status 409 (sold out)": (r) => r.status === 409, // 재고 소진 시 정상 응답
+    "status 200 or 409": (r) => r.status === 200 || r.status === 409,
   });
 }

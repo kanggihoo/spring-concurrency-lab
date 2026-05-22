@@ -13,6 +13,7 @@ import http from "k6/http";
 import { check, sleep } from "k6";
 
 const BASE_URL = "http://host.docker.internal:8080";
+const reservationResponseCallback = http.expectedStatuses(200, 409);
 
 export const options = {
   tags: {
@@ -38,12 +39,14 @@ export default function () {
   const res = http.post(
     `${BASE_URL}/api/reservations`,
     JSON.stringify({ concertId: 1, userId: __VU }),
-    { headers: { "Content-Type": "application/json" } },
+    {
+      headers: { "Content-Type": "application/json" },
+      responseCallback: reservationResponseCallback,
+    },
   );
 
   check(res, {
-    "status 200": (r) => r.status === 200,
-    "status 409 (sold out)": (r) => r.status === 409,
+    "status 200 or 409": (r) => r.status === 200 || r.status === 409,
   });
 
   // 지속 부하 테스트에서는 약간의 딜레이를 줘서 RPS를 조절

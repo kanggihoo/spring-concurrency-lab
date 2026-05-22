@@ -19,6 +19,7 @@ target/
 .gradle/
 node_modules/
 docs/evidence/02-no-lock-baseline/grafana/parts/
+docs/evidence/02-no-lock-baseline/sql/*.txt
 
 # 하지만 Gradle Wrapper는 추적되어야 함
 !gradle/wrapper/gradle-wrapper.jar
