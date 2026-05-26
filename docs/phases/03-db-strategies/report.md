@@ -1,19 +1,24 @@
 # Report
 
-이 문서는 기본 템플릿이다. Phase 성격에 따라 섹션을 추가하거나 삭제할 수 있다.
-
 ## Summary
 
 Not measured yet.
 
 ## Strategy Comparison
 
-| Strategy | RPS | p95 | p99 | Error Rate | Consistency | Evidence |
-|---|---:|---:|---:|---:|---|---|
-| Pessimistic Lock | | | | | | |
-| Optimistic Lock + Retry | | | | | | |
-| Atomic Conditional Update | | | | | | |
-| Unique Constraint | | | | | | |
+| Strategy | RPS | p95 | p99 | Expected Failure Rate | Seat Count Inconsistency | Overbooking | Evidence |
+|---|---:|---:|---:|---:|---:|---:|---|
+| Pessimistic Lock | | | | | | | |
+| Optimistic Lock + Retry | | | | | | | |
+| Atomic Conditional Update | | | | | | | |
+
+## Strategy Metrics
+
+| Strategy | Retry Count | Sold-out Count | Lock Wait Signal |
+|---|---:|---:|---|
+| Pessimistic Lock | N/A | | |
+| Optimistic Lock + Retry | | | N/A |
+| Atomic Conditional Update | N/A | | N/A |
 
 ## Findings
 

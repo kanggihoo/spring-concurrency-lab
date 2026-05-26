@@ -10,17 +10,16 @@ The current domain model uses:
 - **Seat Count Inconsistency** for `reservation_count + remaining_seats != initial_seat_count`.
 - **Overbooking** for successful Reservation count exceeding the Initial Seat Count.
 - **Reservation** only for successful confirmed records.
-- At most one successful **Reservation** per `(Concert, User)`.
 
 ## Goal
 
-Implement and compare PostgreSQL-based concurrency strategies without changing the Phase 2 no-lock baseline semantics.
+Implement and compare PostgreSQL-based Remaining Seats concurrency strategies without changing the Phase 2 no-lock baseline semantics.
 
 Phase 3 should answer:
 
 - Which DB strategy preserves the counted-seat invariant under concurrent Reservation Requests?
 - What throughput and latency cost does each strategy introduce compared with Phase 2?
-- How do retry, sold-out rejection, lock wait, and duplicate request rejection differ by strategy?
+- How do retry, sold-out rejection, and lock wait differ by strategy?
 
 ## Scope
 
@@ -35,7 +34,15 @@ Phase 3 should answer:
 - `/api/reservations/pessimistic`
 - `/api/reservations/optimistic`
 - `/api/reservations/atomic`
-- DB-level duplicate successful Reservation prevention using a unique constraint on `(concert_id, user_id)`.
+
+### Exclude
+
+- Unique Constraint based duplicate Reservation prevention.
+- Same-User duplicate request handling.
+- Idempotency keys.
+- Redis distributed locks, Redis Lua, and external API delay experiments.
+
+These excluded topics belong in later idempotency or Redis phases, not in the Phase 3 seat decrement strategy comparison.
 
 ### Do Not Reuse Directly
 
@@ -88,24 +95,12 @@ Expected behavior:
 - Avoids retry loops for seat decrement.
 - Uses update count as the sold-out signal.
 
-### Unique Constraint
-
-Add a unique constraint or unique index for `(concert_id, user_id)` on `reservation`.
-
-This is not a seat decrement strategy. It protects the rule that one User can have at most one successful Reservation for a Concert.
-
-Expected behavior:
-
-- Duplicate Reservation Requests for the same `(Concert, User)` should not create multiple successful Reservations.
-- Duplicate rejection must not leave `remainingSeats` decremented without a corresponding successful Reservation.
-
 ## API Results
 
 Use response statuses as Reservation Request results, not as domain Reservations:
 
 - `200 reserved`: Reservation was successfully confirmed.
 - `409 sold_out`: no Remaining Seats were available.
-- `409 duplicate_reservation`: the User already has a successful Reservation for the Concert.
 - `409 optimistic_lock_exhausted`: optimistic retries were exhausted.
 - `408 lock_timeout`: pessimistic lock wait timed out.
 - `503 connection_pool_exhausted`: DB connections were exhausted.
@@ -118,7 +113,6 @@ Each strategy needs tests for:
 - Sold-out request does not create a Reservation.
 - Concurrent requests preserve `reservation_count + remaining_seats == initial_seat_count`.
 - Successful Reservation count does not exceed Initial Seat Count.
-- Duplicate `(Concert, User)` requests create at most one successful Reservation.
 
 SQL evidence should record, per strategy:
 
@@ -127,7 +121,6 @@ SQL evidence should record, per strategy:
 - `initial_seat_count`
 - Seat Count Inconsistency value
 - Overbooking value
-- duplicate successful Reservation count
 
 ## Reporting
 
@@ -136,13 +129,12 @@ SQL evidence should record, per strategy:
 - RPS
 - p95
 - p99
-- error or expected-failure rate
+- expected failure rate
 - Seat Count Inconsistency
 - Overbooking
-- duplicate successful Reservation count
 - retry count
 - sold-out count
-- duplicate rejection count
+- lock wait signal
 - evidence path
 
 ## Migration Plan
