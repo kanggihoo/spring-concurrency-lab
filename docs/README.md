@@ -15,6 +15,17 @@
 | `superpowers/specs/` | 설계/spec 문서 |
 | `superpowers/plans/` | AI 작업 계획, vertical slice 계획, 실행 계획 |
 
+## Command Interface
+
+반복 실행의 공식 진입점은 루트 `Makefile`이다.
+
+```bash
+make help
+```
+
+- [Commands Guide](./guides/commands.md)
+- [Project Format Standard](./guides/project-format-standard.md)
+
 ## Roadmap
 
 - [Overview](./roadmap/00-overview.md)
@@ -38,5 +49,3 @@
 - 실행 절차가 재현 가능하다.
 - k6, SQL, Grafana/Prometheus 등 필요한 evidence 위치가 연결되어 있다.
 - `report.md`에 다음 Phase로 넘길 판단 근거가 있다.
-
-

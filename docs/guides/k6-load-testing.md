@@ -1,11 +1,11 @@
 # k6 Load Testing Guide
 
-k6 실행 조건은 Phase 간 비교 가능성을 위해 preset 파일로 관리한다. 실행 방법은 [Scripts Guide](./scripts.md)를 기준으로 한다.
+k6 실행 조건은 Phase 간 비교 가능성을 위해 preset 파일로 관리한다. 실행 방법은 [Commands Guide](./commands.md)를 기준으로 한다.
 
 ## Current Entry Point
 
-```powershell
-bash k6/run.sh baseline prometheus
+```bash
+make k6-run PRESET=baseline MODE=prometheus
 ```
 
 `k6/run.sh`는 `k6/presets/<preset>.json`을 읽고 `k6/reservation-test.js`를 실행한다.

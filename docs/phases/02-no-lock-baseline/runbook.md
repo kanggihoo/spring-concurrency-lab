@@ -6,29 +6,28 @@ Phase 2 No Lock Baseline을 실행하고 evidence를 남기는 절차다.
 
 1. Docker Compose 서비스 실행
 
-   ```powershell
-   docker compose up -d postgres postgres_exporter prometheus grafana
+   ```bash
+   make db-start
    ```
 
 2. Spring Boot 실행
 
-   ```powershell
-   cd concurrency
-   .\gradlew.bat bootRun
+   ```bash
+   make server-start
    ```
 
 ## Steps
 
 1. Grafana dashboard JSON을 최신 상태로 생성한다.
 
-   ```powershell
-   npm run grafana:generate
+   ```bash
+   make grafana-generate
    ```
 
 2. Phase 2 baseline k6 preset을 실행한다.
 
-   ```powershell
-   bash k6/run.sh baseline prometheus
+   ```bash
+   make k6-run PRESET=baseline MODE=prometheus
    ```
 
    `baseline`은 `k6/presets/baseline.json`을 의미하고, `prometheus`는 Docker Compose의 k6 서비스로 실행하면서 Prometheus remote write를 사용한다는 의미다.
@@ -51,16 +50,16 @@ Phase 2 No Lock Baseline을 실행하고 evidence를 남기는 절차다.
 
 5. Grafana dashboard를 캡처한다.
 
-   ```powershell
-   npm run grafana:capture:phase2
+   ```bash
+   make grafana-capture
    ```
 
    이 명령은 최신 `docs/evidence/02-no-lock-baseline/grafana/run-window-*.json`을 읽어 k6 실행 구간으로 Grafana `from`/`to`를 고정한다. 캡처 결과는 `docs/evidence/02-no-lock-baseline/grafana/parts/`에 저장된다.
 
 6. Grafana parts 이미지를 하나의 dashboard 이미지로 합친다.
 
-   ```powershell
-   npm run grafana:stitch:phase2
+   ```bash
+   make evidence-postprocess PHASE=02-no-lock-baseline
    ```
 
    기본 출력은 `docs/evidence/02-no-lock-baseline/grafana/stitched-dashboard.png`이다.
@@ -69,6 +68,6 @@ Phase 2 No Lock Baseline을 실행하고 evidence를 남기는 절차다.
 
 ## Related Guides
 
-- [Scripts Guide](../../guides/scripts.md)
+- [Commands Guide](../../guides/commands.md)
 - [k6 Load Testing](../../guides/k6-load-testing.md)
 - [Result Recording](../../guides/result-recording.md)

@@ -25,23 +25,20 @@
 
 ```bash
 # 1. 모니터링 인프라 실행 (Prometheus, Grafana, DB) - 백그라운드 구동
-docker compose up -d
+make db-start
 
 # 2. k6 Phase 2 baseline 실행
 # (주의: 로컬 Spring Boot 서버가 8080 포트에서 실행 중이어야 합니다)
-bash k6/run.sh baseline prometheus
+make k6-run PRESET=baseline MODE=prometheus
 ```
 
 ## 📖 상세 문서 (Documentation)
 
 자세한 구축 과정과 분석 결과는 아래 링크를 참조하세요:
 
-- [**모니터링 구축 요약 & 로그 해석 가이드**](./docs/monitring-setup-summary.md)
-  - Prometheus 연결, Grafana 대시보드 변수 설정, k6 로그 읽는 법
-- [**성능 테스트 계획서**](./docs/PLAN-k6-load-testing.md)
-  - k6 시나리오 및 주요 태스크 로드맵
-- [**k6 설치 및 로컬 설정 가이드**](./settings.md)
-  - k6 설치 방법 및 로컬 실행 명령어 모음
+- [**문서 구조 안내**](./docs/README.md)
+- [**Make 명령 가이드**](./docs/guides/commands.md)
+- [**프로젝트 포맷 표준**](./docs/guides/project-format-standard.md)
 
 ---
 
