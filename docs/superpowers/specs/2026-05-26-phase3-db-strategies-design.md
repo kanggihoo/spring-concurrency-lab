@@ -25,9 +25,10 @@ Phase 3 should answer:
 
 ### Keep
 
-- Keep the existing no-lock baseline endpoint as `/api/reservations`.
+- Keep the existing no-lock baseline endpoint as `/api/reservations`, but do not use it as a Phase 3 measurement target.
 - Keep the current docs/evidence layout under `docs/phases/03-db-strategies` and `docs/evidence/03-db-strategies`.
 - Keep the counted-seat model from ADR 0001.
+- Keep `/api/test/reset` and `/api/test/consistency` as fixed Concert 1 / 100-seat helpers for Phase 3. Strategy runs are sequential, so extra query parameters are not needed.
 
 ### Add
 
@@ -48,7 +49,7 @@ These excluded topics belong in later idempotency or Redis phases, not in the Ph
 
 - Do not merge the older `phase/3-db-lock` branch directly.
 - Do not restore `stock` or `overselling` terminology.
-- Do not add `@Version` in a way that changes the behavior of the Phase 2 no-lock baseline endpoint.
+- Do not re-measure Phase 2 no-lock baseline on the Phase 3 branch. Phase 2 no-lock evidence remains the baseline reference.
 
 ## Strategy Design
 
@@ -64,17 +65,15 @@ Expected behavior:
 
 ### Optimistic Lock + Retry
 
-Use optimistic version checking only for the optimistic strategy path. A version field can exist on `Concert`, but the no-lock baseline must not be measured through a path affected by optimistic retry semantics.
+Use standard JPA optimistic locking with `@Version` on `Concert`, and expose it only through `/api/reservations/optimistic` for Phase 3 measurement.
+
+Adding `@Version` may affect the legacy `/api/reservations` no-lock endpoint because all managed `Concert` updates can receive optimistic version checks. That is acceptable in Phase 3 because no-lock is not re-measured on this branch. Phase 2 no-lock evidence remains the comparison baseline.
 
 Expected behavior:
 
 - Prevents Seat Count Inconsistency when retries succeed.
 - Converts concurrent conflicts into retries or retry-exhausted failures.
 - Needs explicit retry metrics.
-
-Open implementation detail:
-
-- If adding `@Version` to `Concert` would make `/api/reservations` no longer represent Phase 2 no-lock behavior, use a strategy-specific repository update or separate command path so Phase 2 remains comparable.
 
 ### Atomic Conditional Update
 
@@ -88,6 +87,12 @@ WHERE id = :concert_id
 ```
 
 Insert the Reservation only when the update count is `1`.
+
+The conditional update is the gate for Reservation creation:
+
+1. Run the conditional update inside a transaction.
+2. If the update count is `1`, insert the Reservation in the same transaction.
+3. If the update count is `0`, return `sold_out` and do not insert a Reservation.
 
 Expected behavior:
 
@@ -104,6 +109,50 @@ Use response statuses as Reservation Request results, not as domain Reservations
 - `409 optimistic_lock_exhausted`: optimistic retries were exhausted.
 - `408 lock_timeout`: pessimistic lock wait timed out.
 - `503 connection_pool_exhausted`: DB connections were exhausted.
+
+## Load Test Design
+
+Phase 3 uses the same baseline load shape as Phase 2 so results remain comparable with the recorded Phase 2 baseline evidence.
+
+Only baseline is required for the first Phase 3 comparison. Spike, ramp-up, and sustained scenarios can be added later if Phase 3 findings need more stress data.
+
+Add three strategy-specific baseline presets:
+
+- `k6/presets/phase3-pessimistic-baseline.json`
+- `k6/presets/phase3-optimistic-baseline.json`
+- `k6/presets/phase3-atomic-baseline.json`
+
+Each preset should keep the Phase 2 baseline executor, VU, duration, and threshold values. The only differences are:
+
+- `phase`: `phase-03`
+- `scenario`: `pessimistic`, `optimistic`, or `atomic`
+- `preset`: `baseline`
+- `path`: the strategy endpoint path
+- `evidenceDir`: the strategy evidence directory
+
+`k6/reservation-test.js` should use `preset.path` when present and fall back to `/api/reservations` for existing Phase 2 presets.
+
+Run the three strategies sequentially, not concurrently:
+
+1. Reset DB state.
+2. Run one strategy baseline.
+3. Capture k6, SQL, and Grafana evidence.
+4. Repeat for the next strategy.
+
+Sequential execution avoids cross-strategy interference through shared DB rows, locks, and connection pools. Results are merged only in `report.md`.
+
+## Grafana Design
+
+Do not add a Phase 3 dashboard initially.
+
+Reuse the existing `concurrency-lab-overview` dashboard with labels:
+
+- `phase=phase-03`
+- `scenario=pessimistic|optimistic|atomic`
+- `preset=baseline`
+- `pool=default`
+
+If a side-by-side strategy dashboard becomes useful later, add it after the first baseline evidence exists. It is not required for the Phase 3 implementation gate.
 
 ## Verification
 
