@@ -2,6 +2,7 @@ package com.example.concurrency.service;
 
 import com.example.concurrency.domain.Concert;
 import com.example.concurrency.domain.Reservation;
+import com.example.concurrency.domain.SoldOutException;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import io.micrometer.core.instrument.Counter;
@@ -94,6 +95,16 @@ public class ReservationService {
                 .orElseThrow(() -> new IllegalArgumentException("Concert not found. id=" + concertId));
 
         concert.reserveOneSeat();
+        reservationRepository.save(new Reservation(concertId, userId));
+    }
+
+    @Transactional
+    public void reserveWithAtomicUpdate(Long concertId, Long userId) {
+        int updatedRows = concertRepository.decreaseRemainingSeatsIfAvailable(concertId);
+        if (updatedRows == 0) {
+            throw new SoldOutException();
+        }
+
         reservationRepository.save(new Reservation(concertId, userId));
     }
 }

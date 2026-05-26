@@ -62,4 +62,14 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "optimistic_lock_exhausted"));
         }
     }
+
+    @PostMapping("/atomic")
+    public ResponseEntity<Map<String, String>> reserveWithAtomicUpdate(@RequestBody ReservationRequest request) {
+        try {
+            reservationService.reserveWithAtomicUpdate(request.concertId(), request.userId());
+            return ResponseEntity.ok(Map.of("status", "reserved"));
+        } catch (SoldOutException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
+        }
+    }
 }
