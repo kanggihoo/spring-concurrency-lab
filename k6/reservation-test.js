@@ -5,6 +5,7 @@ import { Gauge } from "k6/metrics";
 const presetPath = __ENV.PRESET || "presets/baseline.json";
 const preset = JSON.parse(open(presetPath));
 const baseUrl = __ENV.BASE_URL || preset.baseUrl || "http://host.docker.internal:8080";
+const reservationPath = preset.path || "/api/reservations";
 const reservationResponseCallback = http.expectedStatuses(200, 409);
 
 const reservationCount = new Gauge("concert_reservation_count");
@@ -127,7 +128,7 @@ export function teardown() {
 
 export default function () {
   const res = http.post(
-    `${baseUrl}/api/reservations`,
+    `${baseUrl}${reservationPath}`,
     JSON.stringify({
       concertId: preset.concertId || 1,
       userId: __VU,
