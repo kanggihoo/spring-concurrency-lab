@@ -84,6 +84,35 @@ class DbStrategiesConcurrencyTest {
         assertThat(reservationRepository.countByConcertId(CONCERT_ID)).isZero();
     }
 
+    @Test
+    @DisplayName("Optimistic Lock: concurrent reservations preserve counted-seat invariant")
+    void optimisticLock_concurrentReservations_preserveInvariant() throws InterruptedException {
+        StrategyResult result = runConcurrentReservations(userId ->
+                reservationService.reserveWithOptimisticLock(CONCERT_ID, userId));
+
+        Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
+        long reservationCount = reservationRepository.countByConcertId(CONCERT_ID);
+
+        assertThat(result.successCount()).isBetween(1, INITIAL_SEAT_COUNT);
+        assertThat(reservationCount).isEqualTo(result.successCount());
+        assertThat(reservationCount + concert.getRemainingSeats()).isEqualTo(INITIAL_SEAT_COUNT);
+        assertThat(reservationCount).isLessThanOrEqualTo(INITIAL_SEAT_COUNT);
+    }
+
+    @Test
+    @DisplayName("Optimistic Lock: sold-out request does not create Reservation")
+    void optimisticLock_soldOut_doesNotCreateReservation() {
+        Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
+        concert.resetRemainingSeats(0);
+        concertRepository.saveAndFlush(concert);
+
+        assertThatThrownBy(() -> reservationService.reserveWithOptimisticLock(CONCERT_ID, 1L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessageContaining("Sold out");
+
+        assertThat(reservationRepository.countByConcertId(CONCERT_ID)).isZero();
+    }
+
     private StrategyResult runConcurrentReservations(ReservationCommand command) throws InterruptedException {
         int threadCount = 100;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);

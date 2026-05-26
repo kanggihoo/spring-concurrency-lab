@@ -1,6 +1,7 @@
 package com.example.concurrency.controller;
 
 import com.example.concurrency.domain.SoldOutException;
+import com.example.concurrency.service.OptimisticLockRetryExhaustedException;
 import com.example.concurrency.service.ReservationService;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
@@ -47,6 +48,18 @@ public class ReservationController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
         } catch (PessimisticLockingFailureException | QueryTimeoutException e) {
             return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Map.of("status", "lock_timeout"));
+        }
+    }
+
+    @PostMapping("/optimistic")
+    public ResponseEntity<Map<String, String>> reserveWithOptimisticLock(@RequestBody ReservationRequest request) {
+        try {
+            reservationService.reserveWithOptimisticLock(request.concertId(), request.userId());
+            return ResponseEntity.ok(Map.of("status", "reserved"));
+        } catch (SoldOutException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
+        } catch (OptimisticLockRetryExhaustedException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "optimistic_lock_exhausted"));
         }
     }
 }
