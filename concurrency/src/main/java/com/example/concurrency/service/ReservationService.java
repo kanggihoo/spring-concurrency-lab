@@ -45,4 +45,13 @@ public class ReservationService {
         // 4. save reservation
         reservationRepository.save(new Reservation(concertId, userId));
     }
+
+    @Transactional
+    public void reserveWithPessimisticLock(Long concertId, Long userId) {
+        Concert concert = concertRepository.findByIdWithPessimisticLock(concertId)
+                .orElseThrow(() -> new IllegalArgumentException("Concert not found. id=" + concertId));
+
+        concert.reserveOneSeat();
+        reservationRepository.save(new Reservation(concertId, userId));
+    }
 }

@@ -1,6 +1,10 @@
 package com.example.concurrency.controller;
 
+import com.example.concurrency.domain.SoldOutException;
 import com.example.concurrency.service.ReservationService;
+import org.springframework.dao.PessimisticLockingFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -31,6 +35,18 @@ public class ReservationController {
         } catch (IllegalStateException e) {
             // sold out
             return ResponseEntity.status(409).body(Map.of("status", "sold_out"));
+        }
+    }
+
+    @PostMapping("/pessimistic")
+    public ResponseEntity<Map<String, String>> reserveWithPessimisticLock(@RequestBody ReservationRequest request) {
+        try {
+            reservationService.reserveWithPessimisticLock(request.concertId(), request.userId());
+            return ResponseEntity.ok(Map.of("status", "reserved"));
+        } catch (SoldOutException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
+        } catch (PessimisticLockingFailureException | QueryTimeoutException e) {
+            return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).body(Map.of("status", "lock_timeout"));
         }
     }
 }
