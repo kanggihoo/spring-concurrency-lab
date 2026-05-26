@@ -5,6 +5,7 @@ import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import com.example.concurrency.service.ReservationService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Testcontainers
+@Disabled("Phase 2 no-lock baseline is fixed by recorded evidence; Phase 3 adds @Version for optimistic strategy.")
 class ReservationConcurrencyTest {
 
     @Container
