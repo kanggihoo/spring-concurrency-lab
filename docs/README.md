@@ -39,13 +39,4 @@
 - k6, SQL, Grafana/Prometheus 등 필요한 evidence 위치가 연결되어 있다.
 - `report.md`에 다음 Phase로 넘길 판단 근거가 있다.
 
-## Legacy Documents
 
-- [기존 전체 로드맵](./00_project-overview.md)
-- [k6 부하 테스트 계획](./01_1_PLAN-k6-load-testing.md)
-- [PostgreSQL 모니터링 계획](./01_2_PLAN-postgresql-monitoring.md)
-- [모니터링 구성 요약](./01_Imp-monitring-setup-summary.md)
-- [환경 설정 계획](./02_1_PLAN-envSetting.md)
-- [구현 요약](./02_1_Imp-summary.md)
-- [Troubleshooting](./02_1_Troubleshooting.md)
-- [K6 부하테스트 시 PostgreSQL 모니터링 가이드](./K6%20부하테스트%20시%20PostgreSQL%20모니터링%20가이드.md)
