@@ -121,7 +121,7 @@ server-start:
 		SPRING_PROFILES_ACTIVE=$(PROFILE) \
 		SERVER_PORT=$(PORT) \
 		SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE="$$pool_size" \
-		SPRING_DATASOURCE_HIKARI_CONNECTION_INIT_SQL="SET lock_timeout = '$${lock_timeout}ms'" \
+		SPRING_DATASOURCE_URL="jdbc:postgresql://localhost:5432/reservation?options=-c%20lock_timeout%3D$${lock_timeout}ms" \
 		bash ./gradlew bootRun; \
 	fi
 
