@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 4 DB Operational Limits Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #f0f3f7;
+      --text: #151922;
+      --muted: #5c6676;
+      --line: #d9dee8;
+      --blue: #2563eb;
+      --green: #12805c;
+      --amber: #b7791f;
+      --red: #c2410c;
+      --ink: #263241;
+      --shadow: 0 12px 32px rgba(23, 31, 45, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Pretendard", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.55;
+    }
+
+    a {
+      color: inherit;
+      text-decoration-color: rgba(37, 99, 235, 0.35);
+      text-underline-offset: 3px;
+    }
+
+    .page-header {
+      background: #19202b;
+      color: #fff;
+      border-bottom: 5px solid #12805c;
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 40px));
+      margin: 0 auto;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 40px;
+      padding: 48px 0 42px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      margin: 0 0 10px;
+      color: #9fd6c2;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(34px, 5vw, 62px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 780px;
+      margin: 18px 0 0;
+      color: #d6deea;
+      font-size: 18px;
+    }
+
+    .hero-panel {
+      display: grid;
+      gap: 10px;
+      padding: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .hero-panel strong {
+      display: block;
+      color: #fff;
+      font-size: 15px;
+    }
+
+    .hero-panel span {
+      color: #c7d1df;
+      font-size: 14px;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: rgba(246, 247, 249, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .toolbar .wrap {
+      display: flex;
+      gap: 10px;
+      padding: 12px 0;
+      overflow-x: auto;
+    }
+
+    .toolbar a {
+      flex: 0 0 auto;
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface);
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    main {
+      padding: 30px 0 56px;
+    }
+
+    section {
+      margin-top: 34px;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      color: var(--ink);
+      font-size: 26px;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin: 0 0 8px;
+      color: var(--ink);
+      font-size: 18px;
+      letter-spacing: 0;
+    }
+
+    .lead {
+      max-width: 880px;
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .decision {
+      min-height: 182px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .decision .label {
+      display: inline-flex;
+      align-items: center;
+      min-height: 28px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .label.green {
+      background: var(--green);
+    }
+
+    .label.amber {
+      background: var(--amber);
+    }
+
+    .label.red {
+      background: var(--red);
+    }
+
+    .decision p {
+      margin: 12px 0 0;
+      color: var(--muted);
+    }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .metric {
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      color: var(--ink);
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .metric em {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 13px;
+      font-style: normal;
+    }
+
+    .content-band {
+      padding: 26px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+      gap: 24px;
+      align-items: start;
+    }
+
+    .callout {
+      padding: 18px;
+      border-left: 5px solid var(--blue);
+      border-radius: 6px;
+      background: #eef4ff;
+      color: #1f365f;
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: #fff7e8;
+      color: #533c13;
+    }
+
+    .callout.danger {
+      border-left-color: var(--red);
+      background: #fff1ec;
+      color: #5a2815;
+    }
+
+    .callout p {
+      margin: 0;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 760px;
+      border-collapse: collapse;
+      background: var(--surface);
+    }
+
+    th,
+    td {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      text-align: right;
+      vertical-align: middle;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    th {
+      background: var(--surface-soft);
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+      font-weight: 800;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .best {
+      color: var(--green);
+      font-weight: 900;
+    }
+
+    .bad {
+      color: var(--red);
+      font-weight: 900;
+    }
+
+    .bars {
+      display: grid;
+      gap: 12px;
+    }
+
+    .bar-row {
+      display: grid;
+      grid-template-columns: 86px minmax(120px, 1fr) 84px;
+      gap: 12px;
+      align-items: center;
+      font-size: 14px;
+    }
+
+    .bar-label {
+      color: var(--ink);
+      font-weight: 800;
+    }
+
+    .bar-track {
+      height: 12px;
+      border-radius: 999px;
+      background: #e4e8ef;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: var(--blue);
+    }
+
+    .bar-fill.green {
+      background: var(--green);
+    }
+
+    .bar-fill.red {
+      background: var(--red);
+    }
+
+    .bar-value {
+      color: var(--muted);
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .notes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .note {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--surface);
+    }
+
+    .note p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    .footer {
+      padding: 24px 0;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .hero,
+      .split,
+      .decision-grid,
+      .metric-strip,
+      .notes {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        gap: 24px;
+      }
+
+      .wrap {
+        width: min(100% - 28px, 1180px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="wrap hero">
+      <div>
+        <p class="eyebrow">Spring Concurrency Lab · Phase 4</p>
+        <h1>DB 운영 한계 요약</h1>
+        <p>Atomic Conditional Update와 Pessimistic Lock을 같은 부하에서 비교해 connection pool, row lock wait, lock_timeout이 처리량과 tail latency에 미치는 영향을 정리했다.</p>
+      </div>
+      <aside class="hero-panel" aria-label="실험 조건">
+        <strong>실험 부하</strong>
+        <span>k6 · 100 VUs · 10초 · Concert 1 · Initial Seats 100</span>
+        <strong>공통 정합성 결과</strong>
+        <span>Reservation 100건, Remaining Seats 0, Inconsistency 0, Overbooking false</span>
+      </aside>
+    </div>
+  </header>
+
+  <nav class="toolbar" aria-label="문서 이동">
+    <div class="wrap">
+      <a href="#decision">결론</a>
+      <a href="#atomic">Atomic Pool</a>
+      <a href="#pessimistic">Pessimistic Pool</a>
+      <a href="#timeout">Lock Timeout</a>
+      <a href="#next">Phase 5 입력</a>
+      <a href="report.md">원문 리포트</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="decision">
+      <h2>핵심 결론</h2>
+      <p class="lead">Phase 4의 차이는 정합성이 아니라 운영 성능이다. 모든 조건에서 좌석 수 정합성은 깨지지 않았고, 실제 판단 기준은 처리량, p95/p99, pool pressure, DB row lock wait였다.</p>
+      <div class="decision-grid">
+        <article class="decision">
+          <span class="label green">기본 전략</span>
+          <h3>Atomic Conditional Update</h3>
+          <p>Phase 5 Redis 비교의 DB 기준은 Atomic으로 둔다. 정합성을 유지하면서 pool 확장에 따른 처리량 개선이 가장 명확했다.</p>
+        </article>
+        <article class="decision">
+          <span class="label amber">운영 기준</span>
+          <h3>Pool 10 / Pool 50 분리</h3>
+          <p>Pool 10은 보수적 운영 기준, Pool 50은 이번 로컬 실험에서 확인한 DB throughput ceiling으로 사용한다.</p>
+        </article>
+        <article class="decision">
+          <span class="label red">주의 전략</span>
+          <h3>Pessimistic Lock</h3>
+          <p>정합성 reference로는 유지하지만, 단일 row 고경합에서는 pool을 키울수록 DB lock wait가 쌓일 수 있다.</p>
+        </article>
+      </div>
+
+      <div class="metric-strip" aria-label="대표 수치">
+        <div class="metric">
+          <span>Atomic 최고 RPS</span>
+          <strong>1917.00</strong>
+          <em>pool 50</em>
+        </div>
+        <div class="metric">
+          <span>Atomic 최저 p95</span>
+          <strong>73.70 ms</strong>
+          <em>pool 50</em>
+        </div>
+        <div class="metric">
+          <span>Pessimistic 최악 lock wait</span>
+          <strong>48 rows</strong>
+          <em>pool 50 snapshot</em>
+        </div>
+        <div class="metric">
+          <span>lock_timeout 응답</span>
+          <strong>0</strong>
+          <em>200/500/1000 ms 모두</em>
+        </div>
+      </div>
+    </section>
+
+    <section id="atomic" class="content-band">
+      <h2>Atomic Pool Result</h2>
+      <p class="lead">Atomic은 pool 2에서 pool 5로 올릴 때 가장 큰 개선이 있었다. pool 10 이후에는 개선 폭이 작아지고, pool 50은 이번 로컬 측정의 최고 처리량 지점이다.</p>
+      <div class="split">
+        <div>
+          <div class="callout">
+            <p><strong>운영 해석:</strong> pool 10은 connection 사용량을 과도하게 늘리지 않으면서 주요 개선을 대부분 확보한 보수적 균형점이다. pool 50은 Redis와 비교할 DB 상한선으로 기록한다.</p>
+          </div>
+          <div class="bars" aria-label="Atomic RPS bar chart" style="margin-top:18px">
+            <div class="bar-row"><span class="bar-label">pool 2</span><span class="bar-track"><span class="bar-fill" style="width:39.3%"></span></span><span class="bar-value">754</span></div>
+            <div class="bar-row"><span class="bar-label">pool 5</span><span class="bar-track"><span class="bar-fill" style="width:72.9%"></span></span><span class="bar-value">1398</span></div>
+            <div class="bar-row"><span class="bar-label">pool 10</span><span class="bar-track"><span class="bar-fill" style="width:74.2%"></span></span><span class="bar-value">1422</span></div>
+            <div class="bar-row"><span class="bar-label">pool 20</span><span class="bar-track"><span class="bar-fill" style="width:76.3%"></span></span><span class="bar-value">1463</span></div>
+            <div class="bar-row"><span class="bar-label">pool 50</span><span class="bar-track"><span class="bar-fill green" style="width:100%"></span></span><span class="bar-value">1917</span></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pool</th>
+                <th>RPS</th>
+                <th>p95</th>
+                <th>p99</th>
+                <th>Hikari Pending</th>
+                <th>정합성</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2</td><td>754.21</td><td>224.54 ms</td><td>164.42 ms</td><td>97</td><td>정상</td></tr>
+              <tr><td>5</td><td>1397.59</td><td>115.39 ms</td><td>352.22 ms</td><td>93</td><td>정상</td></tr>
+              <tr><td>10</td><td>1422.08</td><td>125.37 ms</td><td>645.36 ms</td><td>82</td><td>정상</td></tr>
+              <tr><td>20</td><td>1463.32</td><td>143.81 ms</td><td>404.60 ms</td><td>71</td><td>정상</td></tr>
+              <tr><td>50</td><td class="best">1917.00</td><td class="best">73.70 ms</td><td>162.33 ms</td><td>49</td><td>정상</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="pessimistic" class="content-band">
+      <h2>Pessimistic Pool Result</h2>
+      <p class="lead">Pessimistic Lock은 connection pool을 늘려도 처리량이 안정적으로 증가하지 않았다. pool 50에서는 Hikari Pending은 줄었지만 DB row lock wait가 크게 늘었다.</p>
+      <div class="split">
+        <div>
+          <div class="callout danger">
+            <p><strong>병목 위치:</strong> pool 부족이 아니라 같은 Concert row를 잡기 위한 DB 내부 대기다. pool 10 snapshot은 waiting lock row 8개, pool 50 snapshot은 48개를 기록했다.</p>
+          </div>
+          <div class="bars" aria-label="Pessimistic lock wait bar chart" style="margin-top:18px">
+            <div class="bar-row"><span class="bar-label">pool 10</span><span class="bar-track"><span class="bar-fill red" style="width:16.7%"></span></span><span class="bar-value">8</span></div>
+            <div class="bar-row"><span class="bar-label">pool 50</span><span class="bar-track"><span class="bar-fill red" style="width:100%"></span></span><span class="bar-value">48</span></div>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Pool</th>
+                <th>RPS</th>
+                <th>p95</th>
+                <th>p99</th>
+                <th>Hikari Pending</th>
+                <th>Lock Wait</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>2</td><td>748.60</td><td>227.28 ms</td><td>558.62 ms</td><td>97</td><td>미수집</td></tr>
+              <tr><td>5</td><td>762.89</td><td>192.60 ms</td><td>851.32 ms</td><td>94</td><td>미수집</td></tr>
+              <tr><td>10</td><td>727.05</td><td>205.48 ms</td><td class="bad">1182.78 ms</td><td>90</td><td>8 waiting</td></tr>
+              <tr><td>20</td><td class="best">799.25</td><td>179.65 ms</td><td>338.44 ms</td><td>79</td><td>미수집</td></tr>
+              <tr><td>50</td><td class="bad">522.22</td><td class="bad">427.91 ms</td><td>411.13 ms</td><td>49</td><td class="bad">48 waiting</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="timeout" class="content-band">
+      <h2>Pessimistic Timeout Result</h2>
+      <p class="lead">PostgreSQL lock_timeout을 200ms, 500ms, 1000ms로 바꿨지만 현재 부하에서는 timeout 응답이 관측되지 않았다.</p>
+      <div class="split">
+        <div class="callout warning">
+          <p><strong>해석 제한:</strong> 이번 evidence만으로 lock_timeout이 controlled failure를 만든다고 결론낼 수 없다. lock hold time을 의도적으로 늘린 별도 검증이 필요하다.</p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Timeout</th>
+                <th>Reserved</th>
+                <th>Sold Out</th>
+                <th>Timeout Responses</th>
+                <th>p95</th>
+                <th>p99</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>200 ms</td><td>100</td><td>8094</td><td>0</td><td>200.02 ms</td><td>449.97 ms</td></tr>
+              <tr><td>500 ms</td><td>100</td><td>7297</td><td>0</td><td>258.72 ms</td><td>457.70 ms</td></tr>
+              <tr><td>1000 ms</td><td>100</td><td>8122</td><td>0</td><td>194.63 ms</td><td>492.67 ms</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>Phase 5 입력</h2>
+      <div class="notes">
+        <article class="note">
+          <h3>Redis 비교 기준</h3>
+          <p>Atomic Conditional Update pool 10을 보수적 DB 운영 기준으로 사용한다. 같은 k6 shape에서 Redis 전략이 이 기준을 넘어서는지 비교한다.</p>
+        </article>
+        <article class="note">
+          <h3>DB 상한 비교</h3>
+          <p>Atomic Conditional Update pool 50은 이번 Phase 4에서 관측한 DB throughput ceiling이다. Redis가 DB 상한선과 비교해 어떤 비용과 이득을 갖는지 확인한다.</p>
+        </article>
+        <article class="note">
+          <h3>정합성 불변식</h3>
+          <p>전략이 바뀌어도 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0, Overbooking false를 동일하게 만족해야 한다.</p>
+        </article>
+        <article class="note">
+          <h3>추가 검증 대상</h3>
+          <p>lock_timeout은 guardrail 후보로 남긴다. 운영 정책 확정 전에는 transaction 지연 또는 long lock hold를 만드는 별도 실험이 필요하다.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      핵심 요약 HTML · 상세 수치와 evidence 링크는 <a href="report.md">report.md</a>에서 확인
+    </div>
+  </footer>
+</body>
+</html>
