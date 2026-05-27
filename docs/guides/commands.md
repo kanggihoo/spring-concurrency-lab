@@ -37,6 +37,7 @@ make env-check
 | `PORT` | `8080` | Spring Boot port |
 | `CONDITION` | `baseline` | evidence run id prefix |
 | `TAIL` | `120` | k6 tail 출력 줄 수 |
+| `PYTHON` | `python.exe` | image stitching에 사용할 Python 실행 파일 |
 | `DASHBOARD` | `phase2` | Grafana dashboard key |
 | `RUN_WINDOW` | `auto` | Grafana 캡처 시간 구간 |
 
@@ -105,6 +106,42 @@ Grafana table variable을 지정한다.
 make grafana-capture TABLE=concert
 ```
 
+Phase 3 strategy overview dashboard capture:
+
+```bash
+make phase3-grafana-capture STRATEGY=pessimistic-lock
+make phase3-grafana-capture STRATEGY=optimistic-lock
+make phase3-grafana-capture STRATEGY=atomic-update
+```
+
+Phase 3 strategy dashboard stitching:
+
+```bash
+make phase3-grafana-stitch STRATEGY=pessimistic-lock
+make phase3-grafana-stitch STRATEGY=optimistic-lock
+make phase3-grafana-stitch STRATEGY=atomic-update
+```
+
+All Phase 3 strategy captures can be stitched with one command:
+
+```bash
+make phase3-grafana-stitches
+```
+
+Phase 3 SQL consistency evidence:
+
+```bash
+make phase3-sql-consistency STRATEGY=pessimistic-lock
+make phase3-sql-consistency STRATEGY=optimistic-lock
+make phase3-sql-consistency STRATEGY=atomic-update
+```
+
+If Pillow is installed in a different Python, override the interpreter:
+
+```bash
+make phase3-grafana-stitches PYTHON=python3
+```
+
 live 구간을 직접 캡처해야 할 때만 `RUN_WINDOW=0`을 쓰고, 내부 스크립트 옵션의 `--live`가 필요하면 `npm run grafana:capture`로 디버깅한다.
 
 캡처 결과 기본 위치:
@@ -162,6 +199,7 @@ make k6-verify
 |---|---|
 | `k6-run`, `k6-evidence` | `k6/run.sh`, `k6/reservation-test.js`, `k6/presets/*.json` |
 | `grafana-generate` | `scripts/generate-grafana-dashboards.js` |
-| `grafana-capture` | `scripts/capture-grafana-dashboard.js` |
-| `evidence-postprocess`, `grafana-stitch` | `scripts/stitch-grafana-captures.py` |
+| `grafana-capture`, `phase3-grafana-capture`, `phase3-grafana-captures` | `scripts/capture-grafana-dashboard.js` |
+| `evidence-postprocess`, `grafana-stitch`, `phase3-grafana-stitch`, `phase3-grafana-stitches` | `scripts/stitch-grafana-captures.py` |
+| `phase3-sql-consistency`, `phase3-sql-consistencies` | `scripts/sql/phase3-consistency-check.sql` |
 | `k6-verify` | `scripts/verify-k6-reservation-responses.js` |

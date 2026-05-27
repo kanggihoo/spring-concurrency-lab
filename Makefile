@@ -1,4 +1,4 @@
-SHELL := /bin/bash
+SHELL := C:/PROGRA~1/Git/bin/bash.exe
 .DEFAULT_GOAL := help
 
 PHASE ?= 02-no-lock-baseline
@@ -11,15 +11,17 @@ PROFILE ?= local
 PORT ?= 8080
 CONDITION ?= baseline
 TAIL ?= 120
+PYTHON ?= python.exe
 DASHBOARD ?= phase2
 RUN_WINDOW ?= auto
+STRATEGY ?= pessimistic-lock
 TABLE ?=
 URI ?=
 PARTS_DIR ?=
 INPUT ?=
 OUTPUT ?=
 
-.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture evidence-postprocess grafana-stitch phase-status k6-verify
+.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture phase3-grafana-capture phase3-grafana-captures phase3-grafana-stitch phase3-grafana-stitches phase3-sql-consistency phase3-sql-consistencies evidence-postprocess grafana-stitch phase-status k6-verify
 
 help:
 	@echo "Spring Concurrency Lab command interface"
@@ -41,6 +43,18 @@ help:
 	@echo "      Grafana dashboard JSON을 생성한다."
 	@echo "  make grafana-capture DASHBOARD=phase2 RUN_WINDOW=auto TABLE=concert"
 	@echo "      Grafana dashboard를 viewport part 이미지로 캡처한다."
+	@echo "  make phase3-grafana-capture STRATEGY=pessimistic-lock"
+	@echo "      Capture a Phase 3 strategy overview dashboard using its latest run-window."
+	@echo "  make phase3-grafana-captures"
+	@echo "      Capture all Phase 3 strategy overview dashboards."
+	@echo "  make phase3-grafana-stitch STRATEGY=pessimistic-lock"
+	@echo "      Stitch a Phase 3 strategy overview dashboard capture."
+	@echo "  make phase3-grafana-stitches"
+	@echo "      Stitch all Phase 3 strategy overview dashboard captures."
+	@echo "  make phase3-sql-consistency STRATEGY=pessimistic-lock"
+	@echo "      Save Phase 3 SQL consistency evidence for one strategy."
+	@echo "  make phase3-sql-consistencies"
+	@echo "      Save Phase 3 SQL consistency evidence for all strategies."
 	@echo "  make evidence-postprocess PHASE=02-no-lock-baseline"
 	@echo "      Grafana part 이미지를 stitched-dashboard.png로 합친다."
 	@echo "  make phase-status PHASE=02-no-lock-baseline"
@@ -59,7 +73,9 @@ help:
 	@echo "  PORT=$(PORT)"
 	@echo "  CONDITION=$(CONDITION)"
 	@echo "  TAIL=$(TAIL)"
+	@echo "  PYTHON=$(PYTHON)"
 	@echo "  DASHBOARD=$(DASHBOARD)"
+	@echo "  STRATEGY=$(STRATEGY)"
 	@echo
 	@echo "Default output locations:"
 	@echo "  k6 summary/logs: docs/evidence/<phase>/k6, docs/evidence/<phase>/logs"
@@ -73,7 +89,7 @@ env-check:
 	@command -v node >/dev/null || { echo "missing: node"; exit 1; }
 	@command -v npm >/dev/null || { echo "missing: npm"; exit 1; }
 	@command -v java >/dev/null || { echo "missing: java"; exit 1; }
-	@command -v python3 >/dev/null || command -v python >/dev/null || { echo "missing: python3 or python"; exit 1; }
+	@command -v $(PYTHON) >/dev/null || { echo "missing: $(PYTHON)"; exit 1; }
 	@test -f concurrency/gradlew || { echo "missing: concurrency/gradlew"; exit 1; }
 	@echo "env-check ok"
 
@@ -109,8 +125,66 @@ grafana-capture:
 		$(if $(URI),--uri $(URI),) \
 		$(if $(PARTS_DIR),--parts-dir $(PARTS_DIR),)
 
+phase3-grafana-capture:
+	@strategy="$(STRATEGY)"; \
+	case "$$strategy" in \
+		pessimistic-lock) scenario="pessimistic"; preset_name="phase3-pessimistic-baseline" ;; \
+		optimistic-lock) scenario="optimistic"; preset_name="phase3-optimistic-baseline" ;; \
+		atomic-update) scenario="atomic"; preset_name="phase3-atomic-baseline" ;; \
+		*) echo "Unknown STRATEGY=$$strategy. Expected pessimistic-lock, optimistic-lock, or atomic-update."; exit 1 ;; \
+	esac; \
+	run_window=$$(ls -t docs/evidence/03-db-strategies/$$strategy/grafana/run-window-$$preset_name-$(MODE)-*.json 2>/dev/null | head -n 1); \
+	if [[ -z "$$run_window" ]]; then \
+		echo "No Phase 3 run-window found for $$strategy. Run: make k6-run PRESET=$$preset_name MODE=$(MODE)"; \
+		exit 1; \
+	fi; \
+	npm run grafana:capture -- \
+		--dashboard overview \
+		--phase phase-03 \
+		--scenario "$$scenario" \
+		--preset baseline \
+		--pool $(POOL) \
+		--run-window "$$run_window" \
+		--parts-dir "docs/evidence/03-db-strategies/$$strategy/grafana/parts"
+
+phase3-grafana-captures:
+	make phase3-grafana-capture STRATEGY=pessimistic-lock MODE=$(MODE) POOL=$(POOL)
+	make phase3-grafana-capture STRATEGY=optimistic-lock MODE=$(MODE) POOL=$(POOL)
+	make phase3-grafana-capture STRATEGY=atomic-update MODE=$(MODE) POOL=$(POOL)
+
+phase3-grafana-stitch:
+	@strategy="$(STRATEGY)"; \
+	case "$$strategy" in \
+		pessimistic-lock|optimistic-lock|atomic-update) ;; \
+		*) echo "Unknown STRATEGY=$$strategy. Expected pessimistic-lock, optimistic-lock, or atomic-update."; exit 1 ;; \
+	esac; \
+	$(PYTHON) scripts/stitch-grafana-captures.py \
+		--input-dir "docs/evidence/03-db-strategies/$$strategy/grafana/parts" \
+		--output "docs/evidence/03-db-strategies/$$strategy/grafana/stitched-dashboard.png"
+
+phase3-grafana-stitches:
+	make phase3-grafana-stitch STRATEGY=pessimistic-lock
+	make phase3-grafana-stitch STRATEGY=optimistic-lock
+	make phase3-grafana-stitch STRATEGY=atomic-update
+
+phase3-sql-consistency:
+	@strategy="$(STRATEGY)"; \
+	case "$$strategy" in \
+		pessimistic-lock|optimistic-lock|atomic-update) ;; \
+		*) echo "Unknown STRATEGY=$$strategy. Expected pessimistic-lock, optimistic-lock, or atomic-update."; exit 1 ;; \
+	esac; \
+	mkdir -p "docs/evidence/03-db-strategies/$$strategy/sql"; \
+	docker compose exec -T postgres psql -U user -d reservation \
+		< scripts/sql/phase3-consistency-check.sql \
+		> "docs/evidence/03-db-strategies/$$strategy/sql/baseline-consistency.txt"
+
+phase3-sql-consistencies:
+	make phase3-sql-consistency STRATEGY=pessimistic-lock
+	make phase3-sql-consistency STRATEGY=optimistic-lock
+	make phase3-sql-consistency STRATEGY=atomic-update
+
 evidence-postprocess:
-	python3 scripts/stitch-grafana-captures.py \
+	$(PYTHON) scripts/stitch-grafana-captures.py \
 		--phase $(PHASE) \
 		$(if $(INPUT),--input-dir $(INPUT),) \
 		$(if $(OUTPUT),--output $(OUTPUT),)
