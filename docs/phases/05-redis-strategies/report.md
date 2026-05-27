@@ -8,16 +8,27 @@ Not measured yet.
 
 ## Strategy Comparison
 
-| Strategy | RPS | p95 | p99 | Error Rate | Consistency | Evidence |
-|---|---:|---:|---:|---:|---|---|
-| Redisson Lock | | | | | | |
-| Redis Lua | | | | | | |
+| Strategy | RPS | p95 | p99 | Error Rate | Consistency | Redis Evidence | DB Evidence |
+|---|---:|---:|---:|---:|---|---|---|
+| Atomic Conditional Update pool 10 | | | | | | N/A | |
+| Atomic Conditional Update pool 50 | | | | | | N/A | |
+| Redisson Lock | | | | | | | |
+| Redis Lua Atomic Decrement | | | | | | | |
 
 ## Compensation Result
 
 | Scenario | Result | Evidence |
 |---|---|---|
 | Redis decrement success, DB save failure | | |
+
+## Consistency Result
+
+| Strategy | Reservation Count | Remaining Seats | Seat Count Inconsistency | Overbooking | Redis Remaining Seats |
+|---|---:|---:|---:|---|---|
+| Atomic Conditional Update pool 10 | | | | | N/A |
+| Atomic Conditional Update pool 50 | | | | | N/A |
+| Redisson Lock | | | | | |
+| Redis Lua Atomic Decrement | | | | | |
 
 ## Findings
 
