@@ -232,7 +232,7 @@ grafana-stitch: evidence-postprocess
 phase-status:
 	@echo "Phase docs:"
 	@test -d docs/phases/$(PHASE) && find docs/phases/$(PHASE) -maxdepth 1 -type f | sort || echo "missing: docs/phases/$(PHASE)"
-	@echo
+	@echo ""
 	@echo "Evidence:"
 	@test -d docs/evidence/$(PHASE) && find docs/evidence/$(PHASE) -maxdepth 2 | sort || echo "missing: docs/evidence/$(PHASE)"
 
