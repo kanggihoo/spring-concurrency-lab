@@ -1,0 +1,12 @@
+{
+  "phase": "phase-04",
+  "scenario": "atomic",
+  "preset": "pool-limit",
+  "pool": "2",
+  "mode": "prometheus",
+  "exitStatus": 0,
+  "startedAt": 1779860749000,
+  "endedAt": 1779860762000,
+  "grafanaFrom": 1779860739000,
+  "grafanaTo": 1779860782000
+}
