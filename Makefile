@@ -7,6 +7,8 @@ SCENARIO ?= no-lock
 PRESET ?= baseline
 MODE ?= prometheus
 POOL ?= default
+POOL_SIZE ?= 10
+LOCK_TIMEOUT ?= 0
 PROFILE ?= local
 PORT ?= 8080
 CONDITION ?= baseline
@@ -20,8 +22,9 @@ URI ?=
 PARTS_DIR ?=
 INPUT ?=
 OUTPUT ?=
+EXPERIMENT ?=
 
-.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture phase3-grafana-capture phase3-grafana-captures phase3-grafana-stitch phase3-grafana-stitches phase3-sql-consistency phase3-sql-consistencies evidence-postprocess grafana-stitch phase-status k6-verify
+.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture phase3-grafana-capture phase3-grafana-captures phase3-grafana-stitch phase3-grafana-stitches sql-consistency phase3-sql-consistency phase3-sql-consistencies phase4-sql-consistency evidence-postprocess grafana-stitch phase-status k6-verify
 
 help:
 	@echo "Spring Concurrency Lab command interface"
@@ -33,6 +36,8 @@ help:
 	@echo "      PostgreSQL, postgres_exporter, Prometheus, Grafana를 실행한다."
 	@echo "  make server-start PROFILE=local PORT=8080"
 	@echo "      Spring Boot 애플리케이션을 실행한다."
+	@echo "  make server-start POOL_SIZE=10 LOCK_TIMEOUT=500"
+	@echo "      HikariCP pool size와 PostgreSQL lock_timeout(ms)을 지정해 실행한다."
 	@echo "  make k6-run PRESET=baseline MODE=prometheus"
 	@echo "      k6 preset을 실행한다."
 	@echo "  make k6-evidence PHASE=02-no-lock-baseline PRESET=baseline MODE=prometheus CONDITION=baseline"
@@ -55,6 +60,8 @@ help:
 	@echo "      Save Phase 3 SQL consistency evidence for one strategy."
 	@echo "  make phase3-sql-consistencies"
 	@echo "      Save Phase 3 SQL consistency evidence for all strategies."
+	@echo "  make phase4-sql-consistency EXPERIMENT=atomic-pool CONDITION=pool-10"
+	@echo "      Save Phase 4 SQL consistency evidence for one experiment condition."
 	@echo "  make evidence-postprocess PHASE=02-no-lock-baseline"
 	@echo "      Grafana part 이미지를 stitched-dashboard.png로 합친다."
 	@echo "  make phase-status PHASE=02-no-lock-baseline"
@@ -69,6 +76,8 @@ help:
 	@echo "  PRESET=$(PRESET)"
 	@echo "  MODE=$(MODE)"
 	@echo "  POOL=$(POOL)"
+	@echo "  POOL_SIZE=$(POOL_SIZE)"
+	@echo "  LOCK_TIMEOUT=$(LOCK_TIMEOUT)"
 	@echo "  PROFILE=$(PROFILE)"
 	@echo "  PORT=$(PORT)"
 	@echo "  CONDITION=$(CONDITION)"
@@ -97,13 +106,30 @@ db-start:
 	docker compose up -d postgres postgres_exporter prometheus grafana
 
 server-start:
-	cd concurrency && SPRING_PROFILES_ACTIVE=$(PROFILE) SERVER_PORT=$(PORT) bash ./gradlew bootRun
+	@pool_size="$(POOL_SIZE)"; \
+	lock_timeout="$(LOCK_TIMEOUT)"; \
+	case "$$pool_size" in ''|*[!0-9]*) echo "POOL_SIZE must be a positive integer. Got: $$pool_size"; exit 1 ;; esac; \
+	if [[ "$$pool_size" -eq 0 ]]; then echo "POOL_SIZE must be greater than 0."; exit 1; fi; \
+	case "$$lock_timeout" in ''|*[!0-9]*) echo "LOCK_TIMEOUT must be numeric milliseconds or 0. Got: $$lock_timeout"; exit 1 ;; esac; \
+	cd concurrency && \
+	if [[ "$$lock_timeout" -eq 0 ]]; then \
+		SPRING_PROFILES_ACTIVE=$(PROFILE) \
+		SERVER_PORT=$(PORT) \
+		SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE="$$pool_size" \
+		bash ./gradlew bootRun; \
+	else \
+		SPRING_PROFILES_ACTIVE=$(PROFILE) \
+		SERVER_PORT=$(PORT) \
+		SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE="$$pool_size" \
+		SPRING_DATASOURCE_HIKARI_CONNECTION_INIT_SQL="SET lock_timeout = '$${lock_timeout}ms'" \
+		bash ./gradlew bootRun; \
+	fi
 
 k6-run:
-	K6_TAIL_LINES=$(TAIL) bash k6/run.sh $(PRESET) $(MODE)
+	POOL=$(POOL) K6_TAIL_LINES=$(TAIL) bash k6/run.sh $(PRESET) $(MODE)
 
 k6-evidence:
-	K6_EVIDENCE_PHASE_DIR=$(PHASE) K6_TAIL_LINES=$(TAIL) K6_RUN_ID="$(CONDITION)-$$(date +%Y%m%d-%H%M%S)" bash k6/run.sh $(PRESET) $(MODE)
+	POOL=$(POOL) K6_EVIDENCE_PHASE_DIR=$(PHASE) K6_TAIL_LINES=$(TAIL) K6_RUN_ID="$(CONDITION)-$$(date +%Y%m%d-%H%M%S)" bash k6/run.sh $(PRESET) $(MODE)
 
 evidence-capture:
 	$(MAKE) k6-evidence PHASE=$(PHASE) PRESET=$(PRESET) MODE=$(MODE) CONDITION=$(CONDITION) TAIL=$(TAIL)
@@ -175,13 +201,25 @@ phase3-sql-consistency:
 	esac; \
 	mkdir -p "docs/evidence/03-db-strategies/$$strategy/sql"; \
 	docker compose exec -T postgres psql -U user -d reservation \
-		< scripts/sql/phase3-consistency-check.sql \
+		< scripts/sql/consistency-check.sql \
 		> "docs/evidence/03-db-strategies/$$strategy/sql/baseline-consistency.txt"
 
 phase3-sql-consistencies:
 	make phase3-sql-consistency STRATEGY=pessimistic-lock
 	make phase3-sql-consistency STRATEGY=optimistic-lock
 	make phase3-sql-consistency STRATEGY=atomic-update
+
+sql-consistency:
+	@test -n "$(PHASE)" || { echo "PHASE is required."; exit 1; }
+	@test -n "$(EXPERIMENT)" || { echo "EXPERIMENT is required."; exit 1; }
+	@test -n "$(CONDITION)" || { echo "CONDITION is required."; exit 1; }
+	@mkdir -p "docs/evidence/$(PHASE)/$(EXPERIMENT)/$(CONDITION)/sql"
+	docker compose exec -T postgres psql -U user -d reservation \
+		< scripts/sql/consistency-check.sql \
+		> "docs/evidence/$(PHASE)/$(EXPERIMENT)/$(CONDITION)/sql/consistency.txt"
+
+phase4-sql-consistency:
+	$(MAKE) sql-consistency PHASE=04-db-operational-limits EXPERIMENT=$(EXPERIMENT) CONDITION=$(CONDITION)
 
 evidence-postprocess:
 	$(PYTHON) scripts/stitch-grafana-captures.py \

@@ -72,7 +72,7 @@ make help
 | `help` | 사용 가능한 명령 목록 출력 | - | - |
 | `env-check` | 필수 도구와 실행 환경 확인 | - | - |
 | `db-start` | DB와 관측 도구 실행 | - | `PROFILE` |
-| `server-start` | Spring Boot 서버 실행 | - | `PROFILE`, `PORT` |
+| `server-start` | Spring Boot 서버 실행 | - | `PROFILE`, `PORT`, `POOL_SIZE`, `LOCK_TIMEOUT` |
 | `k6-run` | k6 preset 실행 | - | `PRESET`, `MODE`, `TAIL` |
 | `k6-evidence` | evidence run id를 명시해 k6 실행 | - | `PHASE`, `PRESET`, `MODE`, `CONDITION`, `TAIL` |
 | `evidence-capture` | k6 실행 후 Grafana 캡처와 stitch 수행 | - | `PHASE`, `SCENARIO`, `PRESET`, `POOL`, `CONDITION`, `TABLE`, `OUTPUT` |
@@ -80,6 +80,8 @@ make help
 | `grafana-capture` | Grafana dashboard viewport part 캡처 | - | `DASHBOARD`, `GRAFANA_PHASE`, `SCENARIO`, `PRESET`, `POOL`, `RUN_WINDOW`, `TABLE`, `URI`, `PARTS_DIR` |
 | `evidence-postprocess` | Grafana 캡처 이미지 stitch | - | `PHASE`, `INPUT`, `OUTPUT` |
 | `grafana-stitch` | `evidence-postprocess` alias | - | `PHASE`, `INPUT`, `OUTPUT` |
+| `sql-consistency` | counted-seat consistency SQL evidence 저장 | `EXPERIMENT`, `CONDITION` | `PHASE` |
+| `phase4-sql-consistency` | Phase 4 consistency SQL evidence 저장 | `EXPERIMENT`, `CONDITION` | - |
 | `phase-status` | phase 문서와 evidence 상태 확인 | - | `PHASE` |
 | `k6-verify` | k6 예약 응답 기대값 검증 | - | - |
 
@@ -95,6 +97,8 @@ make help
 | `PRESET` | k6 preset | `baseline` |
 | `MODE` | k6 실행 모드 | `prometheus` |
 | `POOL` | connection pool preset label | `default` |
+| `POOL_SIZE` | Spring Boot HikariCP maximum pool size | `10` |
+| `LOCK_TIMEOUT` | PostgreSQL lock timeout in milliseconds for Spring Boot connections | `0` |
 | `PROFILE` | Spring profile | `local` |
 | `PORT` | Spring Boot server port | `8080` |
 | `CONDITION` | evidence 조건 이름 | `baseline` |
@@ -104,6 +108,7 @@ make help
 | `OUTPUT` | 후처리 출력 경로 | empty |
 | `INPUT` | 후처리 입력 디렉토리 | empty |
 | `TAIL` | k6 로그 tail 줄 수 | `120` |
+| `EXPERIMENT` | evidence 실험 분류 | empty |
 
 `PHASE`는 현재 repo의 기존 디렉토리 이름을 따른다. Grafana/k6 metric label의 phase 값은 `GRAFANA_PHASE=phase-02`처럼 별도 변수로 둔다.
 

@@ -1,23 +1,26 @@
 # Report
 
-이 문서는 기본 템플릿이다. Phase 성격에 따라 섹션을 추가하거나 삭제할 수 있다.
-
 ## Summary
 
 Not measured yet.
 
-## Connection Pool Result
+## Atomic Pool Result
 
-| Pool Size | RPS | p95 | p99 | Pending Connections | Evidence |
-|---:|---:|---:|---:|---:|---|
-| | | | | | |
+| Pool Size | RPS | p95 | p99 | Hikari Pending | Seat Count Inconsistency | Overbooking | Evidence |
+|---:|---:|---:|---:|---:|---:|---:|---|
+| | | | | | | | |
 
-## Lock/Deadlock Result
+## Pessimistic Pool Result
 
-| Experiment | Observation | Evidence |
-|---|---|---|
-| lock wait | | |
-| deadlock | | |
+| Pool Size | RPS | p95 | p99 | Hikari Pending | Lock Wait Evidence | Seat Count Inconsistency | Overbooking | Evidence |
+|---:|---:|---:|---:|---:|---|---:|---:|---|
+| | | | | | | | | |
+
+## Pessimistic Timeout Result
+
+| Lock Timeout Setting | Reserved | Sold Out | Lock Timeout Responses | p95 | p99 | Seat Count Inconsistency | Overbooking | Evidence |
+|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| | | | | | | | | |
 
 ## Findings
 
@@ -29,4 +32,4 @@ Not recorded yet.
 
 ## Next Phase Input
 
-Phase 5에서 Redis 기반 전략과 DB 한계를 비교한다.
+Phase 5에서 Redis 기반 전략과 DB operational limits를 비교한다.

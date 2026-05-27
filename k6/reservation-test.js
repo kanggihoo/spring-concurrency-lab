@@ -46,7 +46,7 @@ function buildScenario() {
 const phase = requiredString("phase");
 const scenario = requiredString("scenario");
 const presetName = requiredString("preset");
-const pool = requiredString("pool");
+const pool = __ENV.POOL || requiredString("pool");
 
 export const options = {
   tags: {

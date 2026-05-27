@@ -42,8 +42,13 @@ PRESET_SCENARIO="$(json_string_value scenario)"
 PRESET_TAG="$(json_string_value preset)"
 PRESET_POOL="$(json_string_value pool)"
 PRESET_EVIDENCE_DIR="$(json_string_value evidenceDir)"
+if [[ -n "${POOL:-}" && "$POOL" != "default" ]]; then
+  K6_POOL="$POOL"
+else
+  K6_POOL="$PRESET_POOL"
+fi
 
-if [[ -z "$PRESET_PHASE" || -z "$PRESET_SCENARIO" || -z "$PRESET_TAG" || -z "$PRESET_POOL" ]]; then
+if [[ -z "$PRESET_PHASE" || -z "$PRESET_SCENARIO" || -z "$PRESET_TAG" || -z "$K6_POOL" ]]; then
   echo "Preset must define string fields: phase, scenario, preset, pool" >&2
   exit 1
 fi
@@ -99,6 +104,7 @@ case "$MODE" in
         --summary-export "$SUMMARY_FILE"
         -e PRESET="presets/${PRESET_NAME}.json"
         -e BASE_URL="$BASE_URL"
+        -e POOL="$K6_POOL"
         "$K6_SCRIPT"
       )
     else
@@ -114,6 +120,7 @@ case "$MODE" in
         --summary-export "$SUMMARY_FILE_CONTAINER"
         -e PRESET="/k6/presets/${PRESET_NAME}.json"
         -e BASE_URL="$BASE_URL"
+        -e POOL="$K6_POOL"
         "/k6/$K6_SCRIPT"
       )
     fi
@@ -130,6 +137,7 @@ case "$MODE" in
       --summary-export "$SUMMARY_FILE_CONTAINER"
       -e PRESET="/k6/presets/${PRESET_NAME}.json"
       -e BASE_URL="$BASE_URL"
+      -e POOL="$K6_POOL"
       "/k6/$K6_SCRIPT"
     )
     ;;
@@ -175,7 +183,7 @@ if [[ "$K6_RUN_WINDOW_FILE" != "0" && ( "$STATUS" -eq 0 || "$K6_WRITE_RUN_WINDOW
   "phase": "$PRESET_PHASE",
   "scenario": "$PRESET_SCENARIO",
   "preset": "$PRESET_TAG",
-  "pool": "$PRESET_POOL",
+  "pool": "$K6_POOL",
   "mode": "$MODE",
   "exitStatus": $STATUS,
   "startedAt": $STARTED_AT,

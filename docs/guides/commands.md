@@ -33,6 +33,8 @@ make env-check
 | `PRESET` | `baseline` | `k6/presets/<preset>.json` 이름 |
 | `MODE` | `prometheus` | k6 실행 모드. `prometheus` 또는 `local` |
 | `POOL` | `default` | pool label |
+| `POOL_SIZE` | `10` | Spring Boot 서버의 HikariCP maximum pool size |
+| `LOCK_TIMEOUT` | `0` | Spring Boot 서버 connection의 PostgreSQL lock timeout. 숫자만 쓰며 단위는 ms |
 | `PROFILE` | `local` | Spring profile |
 | `PORT` | `8080` | Spring Boot port |
 | `CONDITION` | `baseline` | evidence run id prefix |
@@ -54,7 +56,10 @@ Spring Boot 서버를 실행한다.
 ```bash
 make server-start
 make server-start PROFILE=local PORT=8080
+make server-start POOL_SIZE=10 LOCK_TIMEOUT=500
 ```
+
+`LOCK_TIMEOUT=0`은 PostgreSQL 기본값인 무제한 lock wait를 의미한다.
 
 ## k6
 
@@ -136,6 +141,14 @@ make phase3-sql-consistency STRATEGY=optimistic-lock
 make phase3-sql-consistency STRATEGY=atomic-update
 ```
 
+Phase 4 SQL consistency evidence:
+
+```bash
+make phase4-sql-consistency EXPERIMENT=atomic-pool CONDITION=pool-10
+make phase4-sql-consistency EXPERIMENT=pessimistic-pool CONDITION=pool-10
+make phase4-sql-consistency EXPERIMENT=pessimistic-timeout CONDITION=timeout-500
+```
+
 If Pillow is installed in a different Python, override the interpreter:
 
 ```bash
@@ -201,5 +214,5 @@ make k6-verify
 | `grafana-generate` | `scripts/generate-grafana-dashboards.js` |
 | `grafana-capture`, `phase3-grafana-capture`, `phase3-grafana-captures` | `scripts/capture-grafana-dashboard.js` |
 | `evidence-postprocess`, `grafana-stitch`, `phase3-grafana-stitch`, `phase3-grafana-stitches` | `scripts/stitch-grafana-captures.py` |
-| `phase3-sql-consistency`, `phase3-sql-consistencies` | `scripts/sql/phase3-consistency-check.sql` |
+| `sql-consistency`, `phase3-sql-consistency`, `phase3-sql-consistencies`, `phase4-sql-consistency` | `scripts/sql/consistency-check.sql` |
 | `k6-verify` | `scripts/verify-k6-reservation-responses.js` |
