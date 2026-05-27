@@ -93,6 +93,26 @@ make phase4-sql-consistency EXPERIMENT=pessimistic-timeout CONDITION=timeout-100
 
 Pessimistic pool 실험 중 `pool-10`, `pool-50`에서 `pg_locks`, `pg_stat_activity` snapshot을 저장한다.
 
+`k6-evidence`가 실행 중일 때 별도 터미널에서 다음 명령을 실행한다.
+
+```bash
+mkdir -p docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql
+docker compose exec -T postgres psql -U user -d reservation \
+  -c "SELECT pid, locktype, relation::regclass, mode, granted FROM pg_locks WHERE NOT granted;" \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-locks.txt
+docker compose exec -T postgres psql -U user -d reservation \
+  -c "SELECT pid, state, wait_event_type, wait_event, query FROM pg_stat_activity WHERE wait_event IS NOT NULL;" \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-stat-activity.txt
+
+mkdir -p docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql
+docker compose exec -T postgres psql -U user -d reservation \
+  -c "SELECT pid, locktype, relation::regclass, mode, granted FROM pg_locks WHERE NOT granted;" \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-locks.txt
+docker compose exec -T postgres psql -U user -d reservation \
+  -c "SELECT pid, state, wait_event_type, wait_event, query FROM pg_stat_activity WHERE wait_event IS NOT NULL;" \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-stat-activity.txt
+```
+
 ## Related Guides
 
 - [PostgreSQL Monitoring](../../guides/postgres-monitoring.md)
