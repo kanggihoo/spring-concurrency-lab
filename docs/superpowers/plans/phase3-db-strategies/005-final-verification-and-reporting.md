@@ -8,7 +8,7 @@
 - Modify: `docs/phases/03-db-strategies/observability.md`
 - Optional Modify: `concurrency/src/test/java/com/example/concurrency/ReservationConcurrencyTest.java`
 
-- [ ] **Step 1: Run all application tests**
+- [x] **Step 1: Run all application tests**
 
 Run:
 
@@ -40,7 +40,7 @@ cd concurrency
 
 Expected: PASS.
 
-- [ ] **Step 2: Run Phase 3 k6 baselines sequentially**
+- [x] **Step 2: Run Phase 3 k6 baselines sequentially**
 
 Start the app and observability stack using the repo's local environment guide. Then run:
 
@@ -56,34 +56,45 @@ Expected evidence:
 - `docs/evidence/03-db-strategies/optimistic-lock/k6/*-summary.json`
 - `docs/evidence/03-db-strategies/atomic-update/k6/*-summary.json`
 
-- [ ] **Step 3: Capture Grafana overview for each strategy**
+- [x] **Step 3: Capture Grafana overview for each strategy**
 
-Use the existing overview dashboard. Run one capture per strategy, substituting the latest run-window file path when needed:
+Use the existing overview dashboard. For Phase 3, use the Makefile target that finds the latest strategy-specific run-window and passes it explicitly to the capture script:
 
 ```powershell
-npm run grafana:capture -- --dashboard overview --phase phase-03 --scenario pessimistic --preset baseline --pool default --run-window auto
-npm run grafana:capture -- --dashboard overview --phase phase-03 --scenario optimistic --preset baseline --pool default --run-window auto
-npm run grafana:capture -- --dashboard overview --phase phase-03 --scenario atomic --preset baseline --pool default --run-window auto
+make phase3-grafana-capture STRATEGY=pessimistic-lock
+make phase3-grafana-capture STRATEGY=optimistic-lock
+make phase3-grafana-capture STRATEGY=atomic-update
 ```
 
 Expected: Grafana capture parts and metadata are written under each strategy's `grafana/` evidence directory.
 
-- [ ] **Step 4: Run SQL consistency evidence after each strategy**
+- [x] **Step 4: Stitch Grafana overview captures**
+
+Run:
+
+```powershell
+make phase3-grafana-stitch STRATEGY=pessimistic-lock
+make phase3-grafana-stitch STRATEGY=optimistic-lock
+make phase3-grafana-stitch STRATEGY=atomic-update
+```
+
+Expected:
+
+- `docs/evidence/03-db-strategies/pessimistic-lock/grafana/stitched-dashboard.png`
+- `docs/evidence/03-db-strategies/optimistic-lock/grafana/stitched-dashboard.png`
+- `docs/evidence/03-db-strategies/atomic-update/grafana/stitched-dashboard.png`
+
+- [x] **Step 5: Run SQL consistency evidence after each strategy**
 
 After each k6 run, save SQL output to that strategy directory:
 
 ```powershell
-docker compose exec -T postgres psql -U user -d reservation `
-  < scripts/sql/phase3-consistency-check.sql `
-  > docs/evidence/03-db-strategies/pessimistic-lock/sql/baseline-consistency.txt
+make phase3-sql-consistency STRATEGY=pessimistic-lock
+make phase3-sql-consistency STRATEGY=optimistic-lock
+make phase3-sql-consistency STRATEGY=atomic-update
 ```
 
-Repeat with these output paths:
-
-```text
-docs/evidence/03-db-strategies/optimistic-lock/sql/baseline-consistency.txt
-docs/evidence/03-db-strategies/atomic-update/sql/baseline-consistency.txt
-```
+`make phase3-sql-consistencies` runs all three commands, but use it only when each strategy's database state is still the state produced by that strategy run.
 
 Expected for each strategy:
 
@@ -92,11 +103,11 @@ seat_count_inconsistency = 0
 overbooked = false
 ```
 
-- [ ] **Step 5: Update Phase 3 report**
+- [x] **Step 6: Update Phase 3 report**
 
 Modify `docs/phases/03-db-strategies/report.md`.
 
-Fill `Strategy Comparison` with measured values from the k6 summary JSON and SQL evidence. Keep this table shape:
+Fill `Strategy Comparison` with measured values from k6 summary JSON, Prometheus p99, and consistency evidence. If raw SQL files were not captured immediately after the matching strategy run, use the k6 teardown consistency snapshot and call that out in the report. Keep this table shape:
 
 ```markdown
 | Strategy | RPS | p95 | p99 | Expected Failure Rate | Seat Count Inconsistency | Overbooking | Evidence |
@@ -106,17 +117,17 @@ Fill `Strategy Comparison` with measured values from the k6 summary JSON and SQL
 | Atomic Conditional Update |  |  |  |  | 0 | 0 | `docs/evidence/03-db-strategies/atomic-update/...` |
 ```
 
-Fill `Strategy Metrics` with retry, sold-out, and lock wait observations:
+Fill `Strategy Metrics` with retry, rejected request, and lock activity observations:
 
 ```markdown
-| Strategy | Retry Count | Sold-out Count | Lock Wait Signal |
+| Strategy | Retry Count | Rejected Request Count | Lock Wait Signal |
 |---|---:|---:|---|
 | Pessimistic Lock | N/A |  |  |
 | Optimistic Lock + Retry |  |  | N/A |
 | Atomic Conditional Update | N/A |  | N/A |
 ```
 
-- [ ] **Step 6: Update Phase 3 runbook and observability docs**
+- [x] **Step 7: Update Phase 3 runbook and observability docs**
 
 Modify `docs/phases/03-db-strategies/runbook.md` so the exact commands include the three Phase 3 preset names:
 
@@ -134,7 +145,7 @@ Modify `docs/phases/03-db-strategies/observability.md` to mention these label co
 - `phase="phase-03", scenario="atomic", preset="baseline", pool="default"`
 ```
 
-- [ ] **Step 7: Final verification**
+- [x] **Step 8: Final verification**
 
 Run:
 
@@ -153,7 +164,7 @@ git status --short
 
 Expected: only intended docs/evidence changes are listed.
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```powershell
 git add docs/phases/03-db-strategies/report.md `
@@ -163,4 +174,3 @@ git add docs/phases/03-db-strategies/report.md `
         concurrency/src/test/java/com/example/concurrency/ReservationConcurrencyTest.java
 git commit -m "docs: record phase3 db strategy results"
 ```
-
