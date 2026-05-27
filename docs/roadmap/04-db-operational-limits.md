@@ -28,7 +28,7 @@ Phase 4는 새로운 Reservation 전략을 추가하는 단계가 아니다. Pha
 - Pessimistic Lock의 `pg_locks`, `pg_stat_activity` lock wait evidence 저장
 - `lock_timeout` 값별 HTTP 응답 분포와 p95/p99 결과 저장
 - 각 실험 후 consistency SQL 결과 저장
-- `docs/phases/04-db-limits/report.md`에 DB pool/timeout 운영 기준 기록
+- `docs/phases/04-db-operational-limits/report.md`에 DB pool/timeout 운영 기준 기록
 
 ## Parameters
 
@@ -65,4 +65,4 @@ Grafana dashboard capture는 모든 조합에 대해 저장하지 않는다. 최
 
 ## Phase Docs
 
-- [Phase Hub](../phases/04-db-limits/README.md)
+- [Phase Hub](../phases/04-db-operational-limits/README.md)

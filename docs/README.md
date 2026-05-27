@@ -32,7 +32,7 @@ make help
 - [Phase 1. Environment & Observability](./roadmap/01-environment-observability.md)
 - [Phase 2. No Lock Baseline](./roadmap/02-no-lock-baseline.md)
 - [Phase 3. DB Concurrency Strategies](./roadmap/03-db-strategies.md)
-- [Phase 4. DB Limit Experiments](./roadmap/04-db-limits.md)
+- [Phase 4. DB Operational Limits](./roadmap/04-db-operational-limits.md)
 - [Phase 5. Redis Concurrency Strategies](./roadmap/05-redis-strategies.md)
 - [Phase 6. Idempotency](./roadmap/06-idempotency.md)
 - [Phase 7. WireMock Payment-Adjacent Experiment](./roadmap/07-wiremock-payment-adjacent.md)
