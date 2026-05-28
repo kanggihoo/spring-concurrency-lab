@@ -33,6 +33,7 @@ Redis Lua는 가장 높은 RPS와 가장 낮은 p95를 보였다. 이유는 좌�
 | Initial Seat Count | 100 |
 | k6 base URL | `http://host.docker.internal:8080` |
 | App port | 8080 |
+| DB Connection Pool | Atomic baseline은 pool 10과 pool 50을 각각 측정했다. Redisson Lock과 Redis Lua 측정은 DB pool 10으로 고정했다. |
 | Observability | Prometheus remote write, Redis exporter, PostgreSQL exporter, Grafana |
 | Redis key | `concert:1:remaining-seats` |
 
@@ -69,7 +70,7 @@ Atomic baseline의 핵심 해석은 단순하다. 이 전략은 Redis 없이도 
 
 ## Redisson Lock Result
 
-Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않는다. Redis는 Concert 단위 lock coordinator 역할만 한다. lock을 획득한 요청만 DB Atomic Conditional Update를 실행하고 Reservation을 저장한다.
+Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않는다. Redis는 Concert 단위 lock coordinator 역할만 한다. lock을 획득한 요청만 DB Atomic Conditional Update를 실행하고 Reservation을 저장한다. 이번 Redisson 측정은 Atomic pool 10과 같은 DB connection pool 10 기준으로 수행했다.
 
 이번 측정에서 Redisson Lock은 최종 DB 정합성을 지켰다. Reservation Count는 100, DB Remaining Seats는 0, Seat Count Inconsistency는 0이었다. 하지만 k6 응답 분포에서 `lock_acquire_failed`가 4,347건 발생했다.
 
@@ -83,6 +84,18 @@ Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않�
 | Lock Acquire Failed | 4,347 | [k6 summary](../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json) |
 | Redis Remaining Seats | 100 | [Redis snapshot](../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt) |
 | DB Consistency | PASS | [SQL](../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt) |
+
+Redisson 응답 status의 의미는 다음처럼 구분해야 한다.
+
+| Status | Redis Lock | DB 접근 | 의미 |
+|---|---|---|---|
+| `reserved` | 획득 성공 | 실행 | lock을 얻은 뒤 DB Atomic Conditional Update가 성공해 Reservation을 저장했다. |
+| `sold_out` | 획득 성공 | 실행 | lock을 얻은 뒤 DB Atomic Conditional Update를 실행했지만 `remaining_seats > 0` 조건이 실패했다. 즉 DB 기준으로 이미 매진이다. |
+| `lock_acquire_failed` | 획득 실패 | 실행 안 함 | `reservation.redis.lock-wait-ms` 안에 Redis lock을 얻지 못했다. DB를 보지 않았기 때문에 그 시점에 좌석이 있었는지 없었는지는 알 수 없다. |
+
+따라서 `lock_acquire_failed` 4,347건은 매진 응답이 아니다. 이 요청들은 Redis lock 앞에서 탈락했기 때문에 DB Remaining Seats를 확인하지 못했다. 좌석이 이미 없었을 수도 있지만, 아직 좌석이 남아 있었더라도 lock을 얻지 못해 예약 기회를 잃었을 수 있다. 현재 구현은 `redissonClient.getLock(...)`을 사용하며 strict FIFO fair lock이 아니므로, 먼저 도착한 요청이 timeout으로 실패하고 나중 요청이 lock release 타이밍을 만나 성공하는 상황도 가능하다.
+
+이 상태를 정확히 구분하려면 Redis나 DB 중 하나에서 좌석 상태를 추가로 읽어야 한다. lock 실패 직후 DB를 read-only로 조회하면 참고 정보는 얻을 수 있지만, 조회 시점과 lock 실패 시점 사이에 상태가 바뀔 수 있어 “그 요청이 예약 가능했는가”를 완전히 증명하지는 못한다. Redis Lua처럼 Redis에도 Remaining Seats를 두면 Redis 단계에서 좌석 상태를 알 수 있지만, 그 대신 Redis/DB 이중 상태, DB 저장 실패 보상, Redis key 복구, compensation monitoring이 필수 운영 책임이 된다.
 
 Redisson의 Redis Remaining Seats snapshot이 100인 것은 정상이다. 이 전략은 Redis Remaining Seats를 차감하지 않고, `/api/test/reset`이 Redis Remaining Seats를 100으로 초기화한 뒤 lock key만 사용한다. 따라서 Redisson 전략에서 Redis Remaining Seats 값은 DB 정합성의 기준이 아니라 “Redis 좌석 게이트를 사용하지 않았다”는 관측 결과로 해석해야 한다.
 
@@ -158,7 +171,7 @@ Redisson Lock의 Redis Remaining Seats가 100인 것은 불일치가 아니다. 
 
 첫째, Atomic Conditional Update는 여전히 가장 단순한 기본 전략이다. Redis 없이 DB row update와 Reservation insert만으로 최종 정합성을 지킨다. pool 10과 pool 50 모두 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0을 기록했다. 운영 구성 요소가 적고, Redis 장애나 Redis/DB 보상 문제를 고려하지 않아도 된다.
 
-둘째, Redisson Lock은 정합성은 지켰지만 처리량이 낮았다. 이번 측정에서 Redisson은 555.21 req/s로 Atomic pool 10의 1211.71 req/s보다 낮았다. lock을 얻지 못한 요청 4,347건은 HTTP failure가 아니라 예상된 409 응답으로 분류되었지만, 실제 사용자 관점에서는 예약 시도가 빠르게 실패한 것이다. Redisson Lock은 DB 정합성 보장을 위해 반드시 필요한 전략이라기보다, 여러 작업을 하나의 분산 임계구역으로 묶어야 할 때 선택할 수 있는 전략이다.
+둘째, Redisson Lock은 정합성은 지켰지만 처리량이 낮았다. 이번 측정에서 Redisson은 DB pool 10 기준 555.21 req/s로 Atomic pool 10의 1211.71 req/s보다 낮았다. lock을 얻지 못한 요청 4,347건은 HTTP failure가 아니라 예상된 409 응답으로 분류되었지만, 실제 사용자 관점에서는 예약 시도가 빠르게 실패한 것이다. 또한 이 응답은 매진이 아니라 좌석 상태 미확인 상태다. Redisson Lock은 DB 정합성 보장을 위해 반드시 필요한 전략이라기보다, 여러 작업을 하나의 분산 임계구역으로 묶어야 할 때 선택할 수 있는 전략이다.
 
 셋째, Redis Lua는 sold-out 이후 DB 부하를 줄이는 데 가장 효과적이었다. Redis Lua는 3547.25 req/s를 기록했고 p95도 44.38 ms로 가장 낮았다. 다만 이 수치는 대부분의 요청이 Redis에서 빠르게 `sold_out`으로 종료된 workload의 특성을 반영한다. 성공 예약 경로는 여전히 DB write를 포함하며, Prometheus p99에서 긴 tail이 관측됐다.
 

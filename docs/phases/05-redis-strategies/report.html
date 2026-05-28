@@ -138,6 +138,7 @@
 <tr><td>Initial Seat Count</td><td>100</td></tr>
 <tr><td>k6 base URL</td><td><code>http://host.docker.internal:8080</code></td></tr>
 <tr><td>App port</td><td>8080</td></tr>
+<tr><td>DB Connection Pool</td><td>Atomic baseline은 pool 10과 pool 50을 각각 측정했다. Redisson Lock과 Redis Lua 측정은 DB pool 10으로 고정했다.</td></tr>
 <tr><td>Observability</td><td>Prometheus remote write, Redis exporter, PostgreSQL exporter, Grafana</td></tr>
 <tr><td>Redis key</td><td><code>concert:1:remaining-seats</code></td></tr></tbody></table></div>
       <h2 id="strategy-comparison">Strategy Comparison</h2>
@@ -157,7 +158,7 @@ WHERE id = ?
       <p>pool 50은 pool 10보다 RPS가 높고 p95가 낮았다. 다만 p99는 pool 50이 더 높았다. 이것은 전체 요청 대부분이 빠른 sold-out 응답으로 수렴하는 workload에서 일부 긴 요청이 Prometheus p99에 크게 반영된 결과로 볼 수 있다.</p>
       <p>Atomic baseline의 핵심 해석은 단순하다. 이 전략은 Redis 없이도 정합성을 지켰고, 실패 응답은 모두 정상적인 매진 응답으로 분류됐다. 운영 관점에서는 구성 요소가 가장 적고 장애 도메인도 DB로 한정된다.</p>
       <h2 id="redisson-lock-result">Redisson Lock Result</h2>
-      <p>Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않는다. Redis는 Concert 단위 lock coordinator 역할만 한다. lock을 획득한 요청만 DB Atomic Conditional Update를 실행하고 Reservation을 저장한다.</p>
+      <p>Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않는다. Redis는 Concert 단위 lock coordinator 역할만 한다. lock을 획득한 요청만 DB Atomic Conditional Update를 실행하고 Reservation을 저장한다. 이번 Redisson 측정은 Atomic pool 10과 같은 DB connection pool 10 기준으로 수행했다.</p>
       <p>이번 측정에서 Redisson Lock은 최종 DB 정합성을 지켰다. Reservation Count는 100, DB Remaining Seats는 0, Seat Count Inconsistency는 0이었다. 하지만 k6 응답 분포에서 <code>lock_acquire_failed</code>가 4,347건 발생했다.</p>
       <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Evidence</th></tr></thead><tbody><tr><td>RPS</td><td>555.21 req/s</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
 <tr><td>p95</td><td>218.72 ms</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
@@ -167,6 +168,12 @@ WHERE id = ?
 <tr><td>Lock Acquire Failed</td><td>4,347</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
 <tr><td>Redis Remaining Seats</td><td>100</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt">Redis snapshot</a></td></tr>
 <tr><td>DB Consistency</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt">SQL</a></td></tr></tbody></table></div>
+      <p>Redisson 응답 status의 의미는 다음처럼 구분해야 한다.</p>
+      <div class="table-wrap"><table><thead><tr><th>Status</th><th>Redis Lock</th><th>DB 접근</th><th>의미</th></tr></thead><tbody><tr><td><code>reserved</code></td><td>획득 성공</td><td>실행</td><td>lock을 얻은 뒤 DB Atomic Conditional Update가 성공해 Reservation을 저장했다.</td></tr>
+<tr><td><code>sold_out</code></td><td>획득 성공</td><td>실행</td><td>lock을 얻은 뒤 DB Atomic Conditional Update를 실행했지만 <code>remaining_seats &gt; 0</code> 조건이 실패했다. 즉 DB 기준으로 이미 매진이다.</td></tr>
+<tr><td><code>lock_acquire_failed</code></td><td>획득 실패</td><td>실행 안 함</td><td><code>reservation.redis.lock-wait-ms</code> 안에 Redis lock을 얻지 못했다. DB를 보지 않았기 때문에 그 시점에 좌석이 있었는지 없었는지는 알 수 없다.</td></tr></tbody></table></div>
+      <p>따라서 <code>lock_acquire_failed</code> 4,347건은 매진 응답이 아니다. 이 요청들은 Redis lock 앞에서 탈락했기 때문에 DB Remaining Seats를 확인하지 못했다. 좌석이 이미 없었을 수도 있지만, 아직 좌석이 남아 있었더라도 lock을 얻지 못해 예약 기회를 잃었을 수 있다. 현재 구현은 <code>redissonClient.getLock(...)</code>을 사용하며 strict FIFO fair lock이 아니므로, 먼저 도착한 요청이 timeout으로 실패하고 나중 요청이 lock release 타이밍을 만나 성공하는 상황도 가능하다.</p>
+      <p>이 상태를 정확히 구분하려면 Redis나 DB 중 하나에서 좌석 상태를 추가로 읽어야 한다. lock 실패 직후 DB를 read-only로 조회하면 참고 정보는 얻을 수 있지만, 조회 시점과 lock 실패 시점 사이에 상태가 바뀔 수 있어 “그 요청이 예약 가능했는가”를 완전히 증명하지는 못한다. Redis Lua처럼 Redis에도 Remaining Seats를 두면 Redis 단계에서 좌석 상태를 알 수 있지만, 그 대신 Redis/DB 이중 상태, DB 저장 실패 보상, Redis key 복구, compensation monitoring이 필수 운영 책임이 된다.</p>
       <p>Redisson의 Redis Remaining Seats snapshot이 100인 것은 정상이다. 이 전략은 Redis Remaining Seats를 차감하지 않고, <code>/api/test/reset</code>이 Redis Remaining Seats를 100으로 초기화한 뒤 lock key만 사용한다. 따라서 Redisson 전략에서 Redis Remaining Seats 값은 DB 정합성의 기준이 아니라 “Redis 좌석 게이트를 사용하지 않았다”는 관측 결과로 해석해야 한다.</p>
       <p>Redisson Lock의 장점은 명확한 직렬화다. 여러 인스턴스가 같은 Concert에 접근하더라도 Redis lock을 통해 진입을 제한할 수 있다. 그러나 이번 workload처럼 같은 Concert 하나에 100 VU가 몰리는 경우에는 lock 획득 자체가 병목이 된다. <code>reservation.redis.lock-wait-ms</code>를 짧게 유지하면 긴 대기 대신 빠른 <code>lock_acquire_failed</code>를 반환한다. 이는 DB 정합성 실패는 아니지만 사용자 경험과 처리량에는 직접적인 손실이다.</p>
       <p>따라서 Redisson Lock은 단순 counted-seat decrement의 기본 전략으로 보기 어렵다. 이미 DB Atomic Conditional Update가 같은 정합성을 더 단순하게 보장한다면, Redis lock은 “DB update만으로 표현하기 어려운 여러 리소스의 임계구역”이 있을 때 별도로 검토하는 편이 맞다.</p>
@@ -209,7 +216,7 @@ WHERE id = ?
 <tr><td>Redis Lua Redis snapshot</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/redis/remaining-seats.txt">remaining-seats.txt</a></td></tr></tbody></table></div>
       <h2 id="findings">Findings</h2>
       <p>첫째, Atomic Conditional Update는 여전히 가장 단순한 기본 전략이다. Redis 없이 DB row update와 Reservation insert만으로 최종 정합성을 지킨다. pool 10과 pool 50 모두 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0을 기록했다. 운영 구성 요소가 적고, Redis 장애나 Redis/DB 보상 문제를 고려하지 않아도 된다.</p>
-      <p>둘째, Redisson Lock은 정합성은 지켰지만 처리량이 낮았다. 이번 측정에서 Redisson은 555.21 req/s로 Atomic pool 10의 1211.71 req/s보다 낮았다. lock을 얻지 못한 요청 4,347건은 HTTP failure가 아니라 예상된 409 응답으로 분류되었지만, 실제 사용자 관점에서는 예약 시도가 빠르게 실패한 것이다. Redisson Lock은 DB 정합성 보장을 위해 반드시 필요한 전략이라기보다, 여러 작업을 하나의 분산 임계구역으로 묶어야 할 때 선택할 수 있는 전략이다.</p>
+      <p>둘째, Redisson Lock은 정합성은 지켰지만 처리량이 낮았다. 이번 측정에서 Redisson은 DB pool 10 기준 555.21 req/s로 Atomic pool 10의 1211.71 req/s보다 낮았다. lock을 얻지 못한 요청 4,347건은 HTTP failure가 아니라 예상된 409 응답으로 분류되었지만, 실제 사용자 관점에서는 예약 시도가 빠르게 실패한 것이다. 또한 이 응답은 매진이 아니라 좌석 상태 미확인 상태다. Redisson Lock은 DB 정합성 보장을 위해 반드시 필요한 전략이라기보다, 여러 작업을 하나의 분산 임계구역으로 묶어야 할 때 선택할 수 있는 전략이다.</p>
       <p>셋째, Redis Lua는 sold-out 이후 DB 부하를 줄이는 데 가장 효과적이었다. Redis Lua는 3547.25 req/s를 기록했고 p95도 44.38 ms로 가장 낮았다. 다만 이 수치는 대부분의 요청이 Redis에서 빠르게 <code>sold_out</code>으로 종료된 workload의 특성을 반영한다. 성공 예약 경로는 여전히 DB write를 포함하며, Prometheus p99에서 긴 tail이 관측됐다.</p>
       <p>넷째, Redis Lua는 성능 이점 대신 보상 복잡도를 가져온다. Redis 차감 성공 후 DB 저장이 실패하면 Redis 값을 되돌려야 한다. 이번 구현은 이 경로를 <code>RedisLuaCompensationTest</code>로 검증했고, 정상 부하 측정에서는 <code>redis_db_sync_failed</code>가 발생하지 않았다. 하지만 운영에서는 compensation counter와 Redis/DB consistency evidence가 필수다.</p>
       <p>다섯째, 이번 Phase 5 결과는 “Redis를 쓰면 항상 더 낫다”가 아니라 “Redis가 어떤 실패와 운영 책임을 새로 만드는지”를 보여준다. Redisson은 lock 실패 응답을 만든다. Redis Lua는 Redis/DB 이중 상태와 보상 로직을 만든다. Atomic Conditional Update는 가장 높은 절대 처리량은 아니지만, 단일 DB source of truth라는 단순성을 유지한다.</p>
