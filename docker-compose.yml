@@ -34,6 +34,31 @@ services:
 
     restart: unless-stopped
 
+  redis:
+    image: redis:alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis_exporter:
+    image: oliver006/redis_exporter:alpine
+    container_name: redis_exporter
+    environment:
+      REDIS_ADDR: "redis://redis:6379"
+    ports:
+      - "9121:9121"
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus

@@ -6,6 +6,10 @@ spring:
     username: user
     password: password
     driver-class-name: org.postgresql.Driver
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
   jpa:
     hibernate:
       ddl-auto: update
@@ -18,7 +22,12 @@ management:
   endpoints:
     web:
       exposure:
-        include: prometheus
+        include: health,prometheus
   metrics:
     tags:
       application: ${spring.application.name}
+
+reservation:
+  redis:
+    lock-wait-ms: ${RESERVATION_REDIS_LOCK_WAIT_MS:200}
+    lock-lease-ms: ${RESERVATION_REDIS_LOCK_LEASE_MS:3000}
