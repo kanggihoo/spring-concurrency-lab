@@ -4,6 +4,7 @@ import com.example.concurrency.domain.Concert;
 import com.example.concurrency.domain.Reservation;
 import com.example.concurrency.domain.SoldOutException;
 import com.example.concurrency.redis.RedisSeatKey;
+import com.example.concurrency.redis.RedisSeatStore;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import io.micrometer.core.instrument.Counter;
@@ -37,17 +38,24 @@ public class ReservationService {
     private final Counter redisLockAcquireFailureCounter;
     private final long redisLockWaitMs;
     private final long redisLockLeaseMs;
+    private final RedisSeatStore redisSeatStore;
+    private final DbReservationWriter dbReservationWriter;
+    private final Counter redisCompensationCounter;
 
     public ReservationService(ConcertRepository concertRepository,
                               ReservationRepository reservationRepository,
                               PlatformTransactionManager transactionManager,
                               MeterRegistry meterRegistry,
+                              RedisSeatStore redisSeatStore,
+                              DbReservationWriter dbReservationWriter,
                               RedissonClient redissonClient,
                               @Value("${reservation.redis.lock-wait-ms:200}") long redisLockWaitMs,
                               @Value("${reservation.redis.lock-lease-ms:3000}") long redisLockLeaseMs) {
         this.concertRepository = concertRepository;
         this.reservationRepository = reservationRepository;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.redisSeatStore = redisSeatStore;
+        this.dbReservationWriter = dbReservationWriter;
         this.redissonClient = redissonClient;
         this.redisLockWaitMs = redisLockWaitMs;
         this.redisLockLeaseMs = redisLockLeaseMs;
@@ -56,6 +64,9 @@ public class ReservationService {
                 .register(meterRegistry);
         this.redisLockAcquireFailureCounter = Counter.builder("reservation.redis.lock.acquire.failed")
                 .description("Redis lock acquire failures")
+                .register(meterRegistry);
+        this.redisCompensationCounter = Counter.builder("reservation.redis.compensation")
+                .description("Redis decrement compensations after DB failures")
                 .register(meterRegistry);
     }
 
@@ -117,14 +128,8 @@ public class ReservationService {
         reservationRepository.save(new Reservation(concertId, userId));
     }
 
-    @Transactional
     public void reserveWithAtomicUpdate(Long concertId, Long userId) {
-        int updatedRows = concertRepository.decreaseRemainingSeatsIfAvailable(concertId);
-        if (updatedRows == 0) {
-            throw new SoldOutException();
-        }
-
-        reservationRepository.save(new Reservation(concertId, userId));
+        dbReservationWriter.reserveWithAtomicUpdate(concertId, userId);
     }
 
     public void reserveWithRedissonLock(Long concertId, Long userId) {
@@ -137,8 +142,7 @@ public class ReservationService {
                 throw new RedisLockAcquireFailedException(concertId);
             }
 
-            transactionTemplate.executeWithoutResult(status ->
-                    reserveWithPessimisticLockFreeDbWrite(concertId, userId));
+            dbReservationWriter.reserveWithAtomicUpdate(concertId, userId);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             redisLockAcquireFailureCounter.increment();
@@ -150,11 +154,18 @@ public class ReservationService {
         }
     }
 
-    private void reserveWithPessimisticLockFreeDbWrite(Long concertId, Long userId) {
-        int updatedRows = concertRepository.decreaseRemainingSeatsIfAvailable(concertId);
-        if (updatedRows == 0) {
+    public void reserveWithRedisLua(Long concertId, Long userId) {
+        boolean decremented = redisSeatStore.decrementIfAvailable(concertId);
+        if (!decremented) {
             throw new SoldOutException();
         }
-        reservationRepository.save(new Reservation(concertId, userId));
+
+        try {
+            dbReservationWriter.reserveWithAtomicUpdate(concertId, userId);
+        } catch (RuntimeException e) {
+            redisSeatStore.compensateDecrement(concertId);
+            redisCompensationCounter.increment();
+            throw new RedisReservationException("DB reservation failed after Redis decrement. concertId=" + concertId, e);
+        }
     }
 }

@@ -1,6 +1,7 @@
 package com.example.concurrency;
 
 import com.example.concurrency.domain.Concert;
+import com.example.concurrency.redis.RedisSeatStore;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import com.example.concurrency.service.ReservationService;
@@ -59,6 +60,9 @@ class RedisStrategiesConcurrencyTest {
     @Autowired
     private ReservationRepository reservationRepository;
 
+    @Autowired
+    private RedisSeatStore redisSeatStore;
+
     @BeforeEach
     void setUp() {
         reservationRepository.deleteAll();
@@ -66,6 +70,7 @@ class RedisStrategiesConcurrencyTest {
                 .orElseGet(() -> concertRepository.save(new Concert("Concert A", INITIAL_SEAT_COUNT)));
         concert.resetRemainingSeats(INITIAL_SEAT_COUNT);
         concertRepository.saveAndFlush(concert);
+        redisSeatStore.initializeRemainingSeats(CONCERT_ID, INITIAL_SEAT_COUNT);
     }
 
     @Test
@@ -82,6 +87,24 @@ class RedisStrategiesConcurrencyTest {
         assertThat(reservationCount).isEqualTo(INITIAL_SEAT_COUNT);
         assertThat(reservationCount + concert.getRemainingSeats()).isEqualTo(INITIAL_SEAT_COUNT);
         assertThat(reservationCount).isLessThanOrEqualTo(INITIAL_SEAT_COUNT);
+    }
+
+    @Test
+    @DisplayName("Redis Lua: concurrent reservations preserve counted-seat invariant")
+    void redisLua_concurrentReservations_preserveInvariant() throws InterruptedException {
+        StrategyResult result = runConcurrentReservations(userId ->
+                reservationService.reserveWithRedisLua(CONCERT_ID, userId));
+
+        Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
+        long reservationCount = reservationRepository.countByConcertId(CONCERT_ID);
+        Integer redisRemainingSeats = redisSeatStore.getRemainingSeats(CONCERT_ID);
+
+        assertThat(result.successCount()).isEqualTo(INITIAL_SEAT_COUNT);
+        assertThat(result.failureCount()).isZero();
+        assertThat(reservationCount).isEqualTo(INITIAL_SEAT_COUNT);
+        assertThat(concert.getRemainingSeats()).isZero();
+        assertThat(redisRemainingSeats).isZero();
+        assertThat(reservationCount + concert.getRemainingSeats()).isEqualTo(INITIAL_SEAT_COUNT);
     }
 
     private StrategyResult runConcurrentReservations(ReservationCommand command) throws InterruptedException {
