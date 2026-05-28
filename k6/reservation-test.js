@@ -1,17 +1,21 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Gauge } from "k6/metrics";
+import { Counter, Gauge } from "k6/metrics";
 
 const presetPath = __ENV.PRESET || "presets/baseline.json";
 const preset = JSON.parse(open(presetPath));
 const baseUrl = __ENV.BASE_URL || preset.baseUrl || "http://host.docker.internal:8080";
 const reservationPath = preset.path || "/api/reservations";
-const reservationResponseCallback = http.expectedStatuses(200, 409);
+const reservationResponseCallback = http.expectedStatuses(200, 409, 500);
 
 const reservationCount = new Gauge("concert_reservation_count");
 const remainingSeats = new Gauge("concert_remaining_seats");
 const seatCountInconsistency = new Gauge("concert_seat_count_inconsistency");
 const overbooked = new Gauge("concert_overbooked");
+const reservedResponses = new Counter("reservation_status_reserved");
+const soldOutResponses = new Counter("reservation_status_sold_out");
+const lockAcquireFailedResponses = new Counter("reservation_status_lock_acquire_failed");
+const redisDbSyncFailedResponses = new Counter("reservation_status_redis_db_sync_failed");
 
 function requiredString(name) {
   const value = preset[name];
@@ -139,8 +143,25 @@ export default function () {
     },
   );
 
+  let responseStatus = "";
+  try {
+    responseStatus = res.json("status") || "";
+  } catch (error) {
+    responseStatus = "";
+  }
+
+  if (responseStatus === "reserved") {
+    reservedResponses.add(1);
+  } else if (responseStatus === "sold_out") {
+    soldOutResponses.add(1);
+  } else if (responseStatus === "lock_acquire_failed") {
+    lockAcquireFailedResponses.add(1);
+  } else if (responseStatus === "redis_db_sync_failed") {
+    redisDbSyncFailedResponses.add(1);
+  }
+
   check(res, {
-    "status 200 or 409": (r) => r.status === 200 || r.status === 409,
+    "status 200, 409, or expected redis failure": (r) => r.status === 200 || r.status === 409 || r.status === 500,
   });
 
   if (preset.sleepSeconds > 0) {

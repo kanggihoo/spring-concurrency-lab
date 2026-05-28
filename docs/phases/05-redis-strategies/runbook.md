@@ -13,6 +13,18 @@
 7. 각 실행 후 DB consistency SQL과 Redis Remaining Seats 값을 함께 저장한다.
 8. `report.md`에 Atomic baseline 대비 장단점을 기록한다.
 
+## Evidence Commands
+
+```bash
+make k6-evidence PHASE=05-redis-strategies PRESET=phase5-redisson-lock MODE=prometheus CONDITION=baseline
+make phase5-sql-consistency EXPERIMENT=redisson-lock CONDITION=baseline
+make phase5-redis-snapshot EXPERIMENT=redisson-lock CONDITION=baseline
+
+make k6-evidence PHASE=05-redis-strategies PRESET=phase5-redis-lua MODE=prometheus CONDITION=baseline
+make phase5-sql-consistency EXPERIMENT=redis-lua CONDITION=baseline
+make phase5-redis-snapshot EXPERIMENT=redis-lua CONDITION=baseline
+```
+
 ## Related Guides
 
 - [Redis Monitoring](../../guides/redis-monitoring.md)

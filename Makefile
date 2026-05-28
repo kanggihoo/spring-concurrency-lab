@@ -23,8 +23,9 @@ PARTS_DIR ?=
 INPUT ?=
 OUTPUT ?=
 EXPERIMENT ?=
+REDIS_KEY ?= concert:1:remaining-seats
 
-.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture phase3-grafana-capture phase3-grafana-captures phase3-grafana-stitch phase3-grafana-stitches sql-consistency phase3-sql-consistency phase3-sql-consistencies phase4-sql-consistency evidence-postprocess grafana-stitch phase-status k6-verify
+.PHONY: help env-check db-start server-start k6-run k6-evidence evidence-capture grafana-generate grafana-capture phase3-grafana-capture phase3-grafana-captures phase3-grafana-stitch phase3-grafana-stitches sql-consistency phase3-sql-consistency phase3-sql-consistencies phase4-sql-consistency phase5-sql-consistency phase5-redis-snapshot evidence-postprocess grafana-stitch phase-status k6-verify
 
 help:
 	@echo "Spring Concurrency Lab command interface"
@@ -62,6 +63,10 @@ help:
 	@echo "      Save Phase 3 SQL consistency evidence for all strategies."
 	@echo "  make phase4-sql-consistency EXPERIMENT=atomic-pool CONDITION=pool-10"
 	@echo "      Save Phase 4 SQL consistency evidence for one experiment condition."
+	@echo "  make phase5-sql-consistency EXPERIMENT=redis-lua CONDITION=baseline"
+	@echo "      Save Phase 5 SQL consistency evidence for one experiment condition."
+	@echo "  make phase5-redis-snapshot EXPERIMENT=redis-lua CONDITION=baseline"
+	@echo "      Save Phase 5 Redis Remaining Seats evidence for one experiment condition."
 	@echo "  make evidence-postprocess PHASE=02-no-lock-baseline"
 	@echo "      Grafana part 이미지를 stitched-dashboard.png로 합친다."
 	@echo "  make phase-status PHASE=02-no-lock-baseline"
@@ -220,6 +225,16 @@ sql-consistency:
 
 phase4-sql-consistency:
 	$(MAKE) sql-consistency PHASE=04-db-operational-limits EXPERIMENT=$(EXPERIMENT) CONDITION=$(CONDITION)
+
+phase5-sql-consistency:
+	$(MAKE) sql-consistency PHASE=05-redis-strategies EXPERIMENT=$(EXPERIMENT) CONDITION=$(CONDITION)
+
+phase5-redis-snapshot:
+	@test -n "$(EXPERIMENT)" || { echo "EXPERIMENT is required."; exit 1; }
+	@test -n "$(CONDITION)" || { echo "CONDITION is required."; exit 1; }
+	@mkdir -p "docs/evidence/05-redis-strategies/$(EXPERIMENT)/$(CONDITION)/redis"
+	docker compose exec -T redis redis-cli GET "$(REDIS_KEY)" \
+		> "docs/evidence/05-redis-strategies/$(EXPERIMENT)/$(CONDITION)/redis/remaining-seats.txt"
 
 evidence-postprocess:
 	$(PYTHON) scripts/stitch-grafana-captures.py \
