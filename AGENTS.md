@@ -15,3 +15,7 @@ Use the default triage label vocabulary: `needs-triage`, `needs-info`, `ready-fo
 ### Domain docs
 
 This is a single-context repo: read root `CONTEXT.md` and root `docs/adr/`. See `docs/agents/domain.md`.
+
+### Project-local skills
+
+Project-specific agent skills live in `.agent/skills/`. Use `phase-evidence-portfolio-review` when reviewing phase reports, evidence, and backend portfolio readiness for this repository.
