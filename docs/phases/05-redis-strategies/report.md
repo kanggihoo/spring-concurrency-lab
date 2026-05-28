@@ -126,6 +126,10 @@ RPS가 높은 이유는 대부분의 요청이 좌석 소진 이후 Redis에서 
 
 Redis Lua의 운영상 핵심 비용은 보상 처리다. Redis 차감은 성공했지만 DB 저장이 실패하면 Redis Remaining Seats를 되돌려야 한다. 이 경로는 `RedisLuaCompensationTest`로 검증했고, 정상 k6 성능 측정에서는 `redis_db_sync_failed`가 발생하지 않았다. 그러나 실제 운영에서는 이 counter가 0으로 유지되는지 반드시 관측해야 한다.
 
+보상 조건은 "DB에 접근하는 동안 기다렸다"는 사실 자체가 아니다. Redis Lua가 `DECR`에 성공한 뒤 DB Atomic Conditional Update나 Reservation insert가 timeout, lock timeout, deadlock, connection timeout, constraint violation, transaction exception 같은 `RuntimeException`으로 끝났을 때 보상이 실행된다. DB row lock을 기다리다가 결국 update와 insert가 성공하면 예약은 정상 확정되고 Redis 보상은 발생하지 않는다. 반대로 DB row lock을 기다리다가 timeout으로 실패하면 Reservation row가 생성되지 않으므로 `compensateDecrement()`로 Redis Remaining Seats를 `+1` 복구해야 한다.
+
+이번 Phase 5 측정에서는 `redis_db_sync_failed`가 0이었으므로, Redis Lua의 보상 경로는 성능 측정 중 실제로 발생하지 않았다. 따라서 이번 Redis Lua p99 tail은 보상 반복 때문에 생긴 결과로 보기는 어렵다. 더 그럴듯한 해석은 Redis가 초반 100개 요청을 빠르게 통과시킨 뒤, 이 성공 후보들이 DB pool 10과 단일 Concert row의 Atomic Conditional Update 및 Reservation insert 경로에 짧은 시간 안에 몰리면서 일부 요청 tail을 만든 것이다.
+
 ## Compensation Result
 
 | Scenario | Result | Evidence |
@@ -197,6 +201,24 @@ Redis Lua는 상황부 전략으로 둔다. sold-out 이후 DB 부하를 줄이�
 따라서 Phase 5의 결론은 다음과 같다.
 
 > 단일 Concert Remaining Seats 차감과 Reservation insert만 있는 현재 범위에서는 DB Atomic Conditional Update를 기본 전략으로 유지한다. Redisson Lock과 Redis Lua는 운영상 이유가 명확할 때만 선택하는 보조 전략으로 둔다.
+
+## Phase 5 Improvement Notes
+
+Phase 5는 Redis 전략의 기본 비교에는 충분했지만, 운영 결정을 더 강하게 만들려면 다음 측정 개선이 필요하다.
+
+첫째, p95와 p99의 출처를 통일해야 한다. 현재 p95는 k6 summary JSON에서 읽고, p99는 Prometheus remote-write metric에서 별도 조회했다. 두 값의 방향성은 참고할 수 있지만 같은 집계 경로의 분위수처럼 정밀하게 비교하기 어렵다. 다음 측정에서는 k6 `summaryTrendStats`에 `p(99)`를 추가해 p95와 p99를 같은 k6 summary에서 저장하거나, Prometheus `k6_http_req_duration_p95`와 `k6_http_req_duration_p99`를 같은 run-window query로 함께 저장해야 한다.
+
+둘째, DB 접근 횟수를 추론이 아니라 metric으로 남겨야 한다. 이번 보고서에서는 status counter를 통해 Redisson의 DB 접근을 `reserved + sold_out = 1,575`, Redis Lua의 DB 접근을 `reserved + redis_db_sync_failed = 100`으로 추론했다. 다음에는 `DbReservationWriter`에 `db_reservation_attempt`, `db_reservation_success`, `db_reservation_sold_out`, `db_reservation_failure` counter를 추가해 전략별 DB 진입 수를 직접 측정하는 편이 좋다.
+
+셋째, Redis Lua는 좌석 수를 바꿔 다시 측정해야 한다. 현재 Initial Seat Count는 100이어서 대부분의 요청이 매진 이후 Redis-only `sold_out`으로 빠르게 종료됐다. 이 workload에서는 Redis Lua의 p95가 낮게 나온다. 하지만 좌석 수가 1,000개 또는 10,000개로 커지면 더 많은 요청이 Redis를 통과해 DB Atomic Conditional Update와 Reservation insert까지 도달한다. 이 경우 Redis Lua의 이점이 줄고 p95/p99가 DB 경합과 connection pool 10의 영향을 더 크게 받을 수 있으므로, seat count 100, 1,000, 10,000 조건을 분리해 측정해야 한다.
+
+넷째, Redis Lua 보상 경로를 부하 상황에서 의도적으로 검증해야 한다. 현재 보상은 단위 테스트로 검증됐고 정상 k6 측정에서는 `redis_db_sync_failed`가 0이었다. 운영 전략으로 평가하려면 DB lock timeout, statement timeout, connection timeout, 강제 insert 실패를 만들어 Redis 보상이 발생하는 부하 테스트를 별도로 수행해야 한다. 이때 Redis Remaining Seats와 DB consistency가 최종적으로 복구되는지, compensation counter가 정확히 증가하는지 확인해야 한다.
+
+다섯째, Redisson Lock은 lock 정책을 분리 측정해야 한다. 현재는 `getLock(...)`, lock wait 200ms, lease 3000ms 기준이다. 이 설정은 긴 tail을 줄이는 대신 `lock_acquire_failed`를 많이 만든다. 다음에는 wait 0ms, 200ms, 1000ms, fair lock, retry policy를 분리해 측정하고, `lock_acquire_failed`를 "매진"이 아니라 "좌석 상태 미확인/재시도 가능" 응답으로 다루는 UX와 API contract를 정해야 한다.
+
+여섯째, 단일 Concert 고경합만이 아니라 여러 Concert 분포를 추가해야 한다. 현재 모든 요청이 Concert 1에 몰려 단일 row 경합을 극대화한다. 실제 트래픽에서는 hot concert 하나와 여러 normal concert가 섞일 수 있다. Redis Lua와 Redisson Lock이 hot-key 상황에서는 어떤 결과를 내고, 분산된 Concert ID에서는 어떤 결과를 내는지 별도 workload로 비교해야 한다.
+
+일곱째, 측정 run을 시간 구간별로 분해해야 한다. Redis Lua의 전체 p95는 대부분의 sold-out 요청 때문에 낮게 보이지만, 실제 예약 성공 경로의 latency는 초반 100개 요청에 집중된다. 다음 보고서에서는 전체 run 지표와 함께 "좌석 소진 전 성공 경로 window", "좌석 소진 후 sold-out window"를 분리해 저장해야 한다.
 
 ## Next Phase Input
 
