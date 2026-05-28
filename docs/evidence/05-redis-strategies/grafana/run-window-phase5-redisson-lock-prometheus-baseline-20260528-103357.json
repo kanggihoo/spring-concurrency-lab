@@ -1,0 +1,12 @@
+{
+  "phase": "phase-05",
+  "scenario": "redisson",
+  "preset": "baseline",
+  "pool": "10",
+  "mode": "prometheus",
+  "exitStatus": 0,
+  "startedAt": 1779932037000,
+  "endedAt": 1779932049000,
+  "grafanaFrom": 1779932027000,
+  "grafanaTo": 1779932069000
+}

@@ -1,0 +1,3 @@
+﻿query: max(max_over_time(k6_http_req_duration_p99{phase="phase-05",scenario="atomic",preset="baseline",pool="50",url=~".*/api/reservations/.*"}[1h]))
+result_seconds: 0.95681695928
+result_ms: 956.82

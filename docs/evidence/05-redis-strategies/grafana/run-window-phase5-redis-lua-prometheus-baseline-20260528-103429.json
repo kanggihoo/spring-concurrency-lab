@@ -1,0 +1,12 @@
+{
+  "phase": "phase-05",
+  "scenario": "redis-lua",
+  "preset": "baseline",
+  "pool": "10",
+  "mode": "prometheus",
+  "exitStatus": 0,
+  "startedAt": 1779932070000,
+  "endedAt": 1779932081000,
+  "grafanaFrom": 1779932060000,
+  "grafanaTo": 1779932101000
+}

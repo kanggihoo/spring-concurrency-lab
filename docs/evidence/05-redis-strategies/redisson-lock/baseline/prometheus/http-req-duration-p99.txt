@@ -1,0 +1,3 @@
+﻿query: max(max_over_time(k6_http_req_duration_p99{phase="phase-05",scenario="redisson",preset="baseline",pool="10",url=~".*/api/reservations/.*"}[1h]))
+result_seconds: 0.36464367058
+result_ms: 364.64
