@@ -3,16 +3,22 @@ package com.example.concurrency.service;
 import com.example.concurrency.domain.Concert;
 import com.example.concurrency.domain.Reservation;
 import com.example.concurrency.domain.SoldOutException;
+import com.example.concurrency.redis.RedisSeatKey;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.persistence.OptimisticLockException;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 예약 서비스 — Phase 2 베이스라인 (락 없음).
@@ -27,16 +33,29 @@ public class ReservationService {
     private final ReservationRepository reservationRepository;
     private final TransactionTemplate transactionTemplate;
     private final Counter optimisticRetryCounter;
+    private final RedissonClient redissonClient;
+    private final Counter redisLockAcquireFailureCounter;
+    private final long redisLockWaitMs;
+    private final long redisLockLeaseMs;
 
     public ReservationService(ConcertRepository concertRepository,
                               ReservationRepository reservationRepository,
                               PlatformTransactionManager transactionManager,
-                              MeterRegistry meterRegistry) {
+                              MeterRegistry meterRegistry,
+                              RedissonClient redissonClient,
+                              @Value("${reservation.redis.lock-wait-ms:200}") long redisLockWaitMs,
+                              @Value("${reservation.redis.lock-lease-ms:3000}") long redisLockLeaseMs) {
         this.concertRepository = concertRepository;
         this.reservationRepository = reservationRepository;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.redissonClient = redissonClient;
+        this.redisLockWaitMs = redisLockWaitMs;
+        this.redisLockLeaseMs = redisLockLeaseMs;
         this.optimisticRetryCounter = Counter.builder("reservation.optimistic.retry")
                 .description("Optimistic lock retry attempts")
+                .register(meterRegistry);
+        this.redisLockAcquireFailureCounter = Counter.builder("reservation.redis.lock.acquire.failed")
+                .description("Redis lock acquire failures")
                 .register(meterRegistry);
     }
 
@@ -105,6 +124,37 @@ public class ReservationService {
             throw new SoldOutException();
         }
 
+        reservationRepository.save(new Reservation(concertId, userId));
+    }
+
+    public void reserveWithRedissonLock(Long concertId, Long userId) {
+        RLock lock = redissonClient.getLock(RedisSeatKey.lock(concertId));
+        boolean acquired = false;
+        try {
+            acquired = lock.tryLock(redisLockWaitMs, redisLockLeaseMs, TimeUnit.MILLISECONDS);
+            if (!acquired) {
+                redisLockAcquireFailureCounter.increment();
+                throw new RedisLockAcquireFailedException(concertId);
+            }
+
+            transactionTemplate.executeWithoutResult(status ->
+                    reserveWithPessimisticLockFreeDbWrite(concertId, userId));
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            redisLockAcquireFailureCounter.increment();
+            throw new RedisLockAcquireFailedException(concertId);
+        } finally {
+            if (acquired && lock.isHeldByCurrentThread()) {
+                lock.unlock();
+            }
+        }
+    }
+
+    private void reserveWithPessimisticLockFreeDbWrite(Long concertId, Long userId) {
+        int updatedRows = concertRepository.decreaseRemainingSeatsIfAvailable(concertId);
+        if (updatedRows == 0) {
+            throw new SoldOutException();
+        }
         reservationRepository.save(new Reservation(concertId, userId));
     }
 }

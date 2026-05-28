@@ -2,6 +2,7 @@ package com.example.concurrency.controller;
 
 import com.example.concurrency.domain.SoldOutException;
 import com.example.concurrency.service.OptimisticLockRetryExhaustedException;
+import com.example.concurrency.service.RedisLockAcquireFailedException;
 import com.example.concurrency.service.ReservationService;
 import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.dao.QueryTimeoutException;
@@ -70,6 +71,18 @@ public class ReservationController {
             return ResponseEntity.ok(Map.of("status", "reserved"));
         } catch (SoldOutException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
+        }
+    }
+
+    @PostMapping("/redisson")
+    public ResponseEntity<Map<String, String>> reserveWithRedissonLock(@RequestBody ReservationRequest request) {
+        try {
+            reservationService.reserveWithRedissonLock(request.concertId(), request.userId());
+            return ResponseEntity.ok(Map.of("status", "reserved"));
+        } catch (SoldOutException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "sold_out"));
+        } catch (RedisLockAcquireFailedException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("status", "lock_acquire_failed"));
         }
     }
 }
