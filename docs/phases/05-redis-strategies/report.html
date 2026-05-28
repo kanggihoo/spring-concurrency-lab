@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 5 Redis Strategies Report</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-soft: #eef2f6;
+      --text: #151922;
+      --muted: #5c6676;
+      --line: #d9dee8;
+      --green: #12805c;
+      --blue: #2563eb;
+      --amber: #b7791f;
+      --red: #c2410c;
+      --ink: #263241;
+      --shadow: 0 12px 32px rgba(23, 31, 45, 0.08);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Pretendard", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--blue); text-decoration-color: rgba(37, 99, 235, 0.35); text-underline-offset: 3px; }
+    .page-header { background: #19202b; color: #fff; border-bottom: 5px solid var(--green); }
+    .wrap { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
+    .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: 38px; padding: 48px 0 42px; align-items: end; }
+    .eyebrow { margin: 0 0 10px; color: #9fd6c2; font-size: 13px; font-weight: 800; letter-spacing: 0; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(34px, 5vw, 62px); line-height: 1.04; letter-spacing: 0; }
+    .hero p { max-width: 820px; margin: 18px 0 0; color: #d6deea; font-size: 18px; }
+    .hero-panel { display: grid; grid-template-columns: 1fr; gap: 10px; padding: 20px; border: 1px solid rgba(255,255,255,0.18); border-radius: 8px; background: rgba(255,255,255,0.06); }
+    .hero-panel strong { display: block; color: #fff; font-size: 15px; }
+    .hero-panel span { color: #c7d1df; font-size: 14px; }
+    .toolbar { position: sticky; top: 0; z-index: 10; background: rgba(246,247,249,0.94); border-bottom: 1px solid var(--line); backdrop-filter: blur(12px); }
+    .toolbar .wrap { display: flex; gap: 10px; padding: 12px 0; overflow-x: auto; }
+    .toolbar a { flex: 0 0 auto; padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+    main { padding: 30px 0 56px; }
+    .metric-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 26px; }
+    .metric { padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+    .metric span { display: block; color: var(--muted); font-size: 13px; font-weight: 800; }
+    .metric strong { display: block; margin-top: 4px; color: var(--ink); font-size: 28px; line-height: 1.1; }
+    .metric em { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; font-style: normal; }
+    .content { padding: 28px; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow); }
+    h2 { margin: 34px 0 14px; padding-top: 12px; color: var(--ink); font-size: 27px; line-height: 1.24; letter-spacing: 0; border-top: 1px solid var(--line); }
+    h2:first-child { margin-top: 0; padding-top: 0; border-top: 0; }
+    h3 { margin: 26px 0 10px; color: var(--ink); font-size: 20px; letter-spacing: 0; }
+    p { margin: 0 0 14px; }
+    ul { margin: 0 0 18px 0; padding-left: 22px; }
+    li { margin: 6px 0; }
+    code { padding: 2px 5px; border-radius: 5px; background: #eef2f6; color: #1f2937; font-family: "Cascadia Code", "Consolas", monospace; font-size: 0.92em; }
+    pre { overflow-x: auto; margin: 16px 0 20px; padding: 16px; border-radius: 8px; background: #111827; color: #e5e7eb; line-height: 1.55; }
+    pre code { padding: 0; background: transparent; color: inherit; }
+    blockquote { margin: 18px 0; padding: 18px; border-left: 5px solid var(--green); border-radius: 6px; background: #eef8f4; color: #173f31; font-weight: 800; }
+    blockquote p { margin: 0; }
+    .table-wrap { overflow-x: auto; margin: 18px 0 24px; border: 1px solid var(--line); border-radius: 8px; }
+    table { width: 100%; min-width: 860px; border-collapse: collapse; background: var(--surface); }
+    th, td { padding: 12px 14px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: top; font-size: 14px; white-space: nowrap; }
+    th { background: var(--surface-soft); color: var(--ink); font-size: 12px; font-weight: 900; text-transform: uppercase; }
+    th:first-child, td:first-child { text-align: left; font-weight: 800; }
+    tr:last-child td { border-bottom: 0; }
+    .footer { padding: 24px 0; border-top: 1px solid var(--line); color: var(--muted); font-size: 14px; }
+    @media (max-width: 900px) {
+      .hero, .metric-strip { grid-template-columns: 1fr; }
+      .hero { gap: 24px; }
+      .wrap { width: min(100% - 28px, 1180px); }
+      .content { padding: 20px; }
+      h1 { font-size: 36px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="page-header">
+    <div class="wrap hero">
+      <div>
+        <p class="eyebrow">Spring Concurrency Lab · Phase 5</p>
+        <h1>Redis 전략 비교 리포트</h1>
+        <p>DB Atomic Conditional Update를 기준선으로 두고 Redisson Lock과 Redis Lua Atomic Decrement의 처리량, tail latency, 실패 응답, 운영 복잡도를 비교했다.</p>
+      </div>
+      <aside class="hero-panel" aria-label="실험 요약">
+        <strong>실험 부하</strong>
+        <span>k6 · 100 VUs · 10초 · Concert 1 · Initial Seats 100</span>
+        <strong>공통 정합성 결과</strong>
+        <span>Reservation 100건, Remaining Seats 0, Inconsistency 0, Overbooking false</span>
+        <strong>최종 판단</strong>
+        <span>기본 전략은 DB Atomic Conditional Update, Redis 전략은 상황부 보조 전략</span>
+      </aside>
+    </div>
+  </header>
+
+  <nav class="toolbar" aria-label="문서 이동">
+    <div class="wrap">
+      <a href="#summary">Summary</a>
+      <a href="#measurement-conditions">Measurement Conditions</a>
+      <a href="#strategy-comparison">Strategy Comparison</a>
+      <a href="#atomic-conditional-update-baseline">Atomic Conditional Update Baseline</a>
+      <a href="#redisson-lock-result">Redisson Lock Result</a>
+      <a href="#redis-lua-atomic-decrement-result">Redis Lua Atomic Decrement Result</a>
+      <a href="#compensation-result">Compensation Result</a>
+      <a href="#consistency-result">Consistency Result</a>
+      <a href="#evidence-inventory">Evidence Inventory</a>
+      <a href="#findings">Findings</a>
+      <a href="#decision">Decision</a>
+      <a href="#next-phase-input">Next Phase Input</a>
+      <a href="report.md">원문 Markdown</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="metric-strip" aria-label="대표 수치">
+      <div class="metric"><span>Redis Lua RPS</span><strong>3547.25</strong><em>가장 높은 처리량</em></div>
+      <div class="metric"><span>Redis Lua p95</span><strong>44.38 ms</strong><em>가장 낮은 p95</em></div>
+      <div class="metric"><span>Redisson Lock 실패</span><strong>4,347</strong><em>lock_acquire_failed</em></div>
+      <div class="metric"><span>정합성 실패</span><strong>0</strong><em>모든 전략 PASS</em></div>
+    </div>
+    <article class="content">
+      <h2 id="summary">Summary</h2>
+      <p>Phase 5에서는 Phase 4에서 기본 DB 전략으로 남긴 <strong>Atomic Conditional Update</strong>를 기준선으로 두고, Redis를 사용하는 두 가지 전략을 같은 부하 조건에서 비교했다.</p>
+      <ul><li><strong>Atomic Conditional Update</strong>: DB의 <code>remaining_seats &gt; 0</code> 조건부 update로 좌석을 차감하고 Reservation을 저장한다.</li><li><strong>Redisson Lock</strong>: Redis 분산락으로 Concert 단위 예약 경로를 직렬화한 뒤 DB Atomic Conditional Update로 최종 저장한다.</li><li><strong>Redis Lua Atomic Decrement</strong>: Redis Lua script로 Redis Remaining Seats를 먼저 원자 차감하고, DB 저장 실패 시 Redis 값을 보상 복구한다.</li></ul>
+      <p>모든 측정은 Concert 1, Initial Seat Count 100, k6 100 VUs, 10초 지속 부하로 수행했다. k6는 예약 성공 응답 <code>reserved</code>, 매진 응답 <code>sold_out</code>, Redisson lock 획득 실패 <code>lock_acquire_failed</code>, Redis/DB 동기화 실패 <code>redis_db_sync_failed</code>를 별도 counter로 기록했다. 최종 정합성은 SQL consistency evidence와 Redis Remaining Seats snapshot으로 확인했다.</p>
+      <p>측정 결과, 세 전략 모두 DB 기준 counted-seat invariant를 지켰다. 최종 상태는 Reservation 100건, DB Remaining Seats 0, Seat Count Inconsistency 0, Overbooking false였다. 차이는 정합성이 아니라 처리량, tail latency, 실패 응답의 의미, 운영 복잡도에서 나타났다.</p>
+      <p>Redis Lua는 가장 높은 RPS와 가장 낮은 p95를 보였다. 이유는 좌석 100개가 소진된 뒤 대부분의 요청을 Redis에서 빠르게 <code>sold_out</code>으로 거절했기 때문이다. Redisson Lock은 정합성을 지켰지만, lock wait 설정 때문에 고경합 상황에서 <code>lock_acquire_failed</code>가 많이 발생했고 처리량도 가장 낮았다. Atomic Conditional Update는 Redis 전략보다 구조가 단순하고 DB만으로 일관된 결과를 만들었다.</p>
+      <p>측정값 출처는 다음과 같다.</p>
+      <ul><li>RPS, p95, Error Rate, 응답 status counter는 k6 summary JSON에서 읽었다.</li><li>p99는 k6 summary export에 포함되지 않으므로 Prometheus remote-write metric <code>k6_http_req_duration_p99</code>를 Phase 5 label 기준으로 조회해 별도 evidence 파일에 저장했다.</li><li>DB 정합성은 <code>scripts/sql/consistency-check.sql</code> 결과를 저장한 <code>sql/consistency.txt</code>로 확인했다.</li><li>Redis Remaining Seats는 <code>redis-cli GET concert:1:remaining-seats</code> 결과를 저장한 <code>redis/remaining-seats.txt</code>로 확인했다.</li></ul>
+      <p>주의할 점이 있다. k6 summary의 p95는 전체 run aggregate이고, p99는 Prometheus remote-write의 시계열 값을 조회한 것이다. 집계 경로가 다르기 때문에 p99는 p95와 같은 표 안에서 직접적인 분위수 연속성으로 해석하기보다, 같은 Phase 5 run-window에서 관측된 tail latency 참고값으로 봐야 한다.</p>
+      <h2 id="measurement-conditions">Measurement Conditions</h2>
+      <div class="table-wrap"><table><thead><tr><th>항목</th><th>값</th></tr></thead><tbody><tr><td>Date</td><td>2026-05-28</td></tr>
+<tr><td>Workload</td><td>100 VUs, 10s, <code>constant-vus</code></td></tr>
+<tr><td>Concert ID</td><td>1</td></tr>
+<tr><td>Initial Seat Count</td><td>100</td></tr>
+<tr><td>k6 base URL</td><td><code>http://host.docker.internal:8080</code></td></tr>
+<tr><td>App port</td><td>8080</td></tr>
+<tr><td>Observability</td><td>Prometheus remote write, Redis exporter, PostgreSQL exporter, Grafana</td></tr>
+<tr><td>Redis key</td><td><code>concert:1:remaining-seats</code></td></tr></tbody></table></div>
+      <h2 id="strategy-comparison">Strategy Comparison</h2>
+      <div class="table-wrap"><table><thead><tr><th>Strategy</th><th>RPS</th><th>p95</th><th>p99</th><th>Error Rate</th><th>Reserved</th><th>Sold Out</th><th>Lock Acquire Failed</th><th>Redis/DB Sync Failed</th><th>Consistency</th><th>Evidence</th></tr></thead><tbody><tr><td>Atomic Conditional Update pool 10</td><td>1211.71 req/s</td><td>151.37 ms</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/prometheus/http-req-duration-p99.txt">773.45 ms</a></td><td>0.00%</td><td>100</td><td>12,436</td><td>0</td><td>0</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-10-20260528-103145-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/sql/consistency.txt">SQL</a></td></tr>
+<tr><td>Atomic Conditional Update pool 50</td><td>1337.19 req/s</td><td>109.60 ms</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/prometheus/http-req-duration-p99.txt">956.82 ms</a></td><td>0.00%</td><td>100</td><td>14,161</td><td>0</td><td>0</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-50-20260528-103247-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/sql/consistency.txt">SQL</a></td></tr>
+<tr><td>Redisson Lock</td><td>555.21 req/s</td><td>218.72 ms</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/prometheus/http-req-duration-p99.txt">364.64 ms</a></td><td>0.00%</td><td>100</td><td>1,475</td><td>4,347</td><td>0</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt">SQL</a>, <a href="../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt">Redis</a></td></tr>
+<tr><td>Redis Lua Atomic Decrement</td><td>3547.25 req/s</td><td>44.38 ms</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/prometheus/http-req-duration-p99.txt">1409.77 ms</a></td><td>0.00%</td><td>100</td><td>36,414</td><td>0</td><td>0</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/redis-lua/baseline/sql/consistency.txt">SQL</a>, <a href="../../evidence/05-redis-strategies/redis-lua/baseline/redis/remaining-seats.txt">Redis</a></td></tr></tbody></table></div>
+      <h2 id="atomic-conditional-update-baseline">Atomic Conditional Update Baseline</h2>
+      <p>Atomic Conditional Update는 DB row 하나에 대해 다음 조건을 만족할 때만 Remaining Seats를 차감한다.</p>
+      <pre><code class="language-sql">UPDATE concert
+SET remaining_seats = remaining_seats - 1
+WHERE id = ?
+  AND remaining_seats &gt; 0</code></pre>
+      <p>이 방식은 DB가 durable source of truth가 된다. Redis가 없어도 Reservation 저장과 Remaining Seats 차감의 최종 정합성을 DB transaction 안에서 확인할 수 있다. Phase 5에서는 이 전략을 pool 10과 pool 50으로 다시 측정했다.</p>
+      <div class="table-wrap"><table><thead><tr><th>Pool Size</th><th>RPS</th><th>p95</th><th>p99</th><th>Reserved</th><th>Sold Out</th><th>Reservation Count</th><th>Remaining Seats</th><th>Seat Count Inconsistency</th><th>Overbooking</th><th>Evidence</th></tr></thead><tbody><tr><td>10</td><td>1211.71 req/s</td><td>151.37 ms</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/prometheus/http-req-duration-p99.txt">773.45 ms</a></td><td>100</td><td>12,436</td><td>100</td><td>0</td><td>0</td><td>false</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-10-20260528-103145-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/sql/consistency.txt">SQL</a></td></tr>
+<tr><td>50</td><td>1337.19 req/s</td><td>109.60 ms</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/prometheus/http-req-duration-p99.txt">956.82 ms</a></td><td>100</td><td>14,161</td><td>100</td><td>0</td><td>0</td><td>false</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-50-20260528-103247-summary.json">k6</a>, <a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/sql/consistency.txt">SQL</a></td></tr></tbody></table></div>
+      <p>pool 50은 pool 10보다 RPS가 높고 p95가 낮았다. 다만 p99는 pool 50이 더 높았다. 이것은 전체 요청 대부분이 빠른 sold-out 응답으로 수렴하는 workload에서 일부 긴 요청이 Prometheus p99에 크게 반영된 결과로 볼 수 있다.</p>
+      <p>Atomic baseline의 핵심 해석은 단순하다. 이 전략은 Redis 없이도 정합성을 지켰고, 실패 응답은 모두 정상적인 매진 응답으로 분류됐다. 운영 관점에서는 구성 요소가 가장 적고 장애 도메인도 DB로 한정된다.</p>
+      <h2 id="redisson-lock-result">Redisson Lock Result</h2>
+      <p>Redisson Lock 전략은 Redis를 Remaining Seats 저장소로 사용하지 않는다. Redis는 Concert 단위 lock coordinator 역할만 한다. lock을 획득한 요청만 DB Atomic Conditional Update를 실행하고 Reservation을 저장한다.</p>
+      <p>이번 측정에서 Redisson Lock은 최종 DB 정합성을 지켰다. Reservation Count는 100, DB Remaining Seats는 0, Seat Count Inconsistency는 0이었다. 하지만 k6 응답 분포에서 <code>lock_acquire_failed</code>가 4,347건 발생했다.</p>
+      <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Evidence</th></tr></thead><tbody><tr><td>RPS</td><td>555.21 req/s</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
+<tr><td>p95</td><td>218.72 ms</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
+<tr><td>p99</td><td>364.64 ms</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/prometheus/http-req-duration-p99.txt">Prometheus p99</a></td></tr>
+<tr><td>Reserved</td><td>100</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
+<tr><td>Sold Out</td><td>1,475</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
+<tr><td>Lock Acquire Failed</td><td>4,347</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">k6 summary</a></td></tr>
+<tr><td>Redis Remaining Seats</td><td>100</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt">Redis snapshot</a></td></tr>
+<tr><td>DB Consistency</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt">SQL</a></td></tr></tbody></table></div>
+      <p>Redisson의 Redis Remaining Seats snapshot이 100인 것은 정상이다. 이 전략은 Redis Remaining Seats를 차감하지 않고, <code>/api/test/reset</code>이 Redis Remaining Seats를 100으로 초기화한 뒤 lock key만 사용한다. 따라서 Redisson 전략에서 Redis Remaining Seats 값은 DB 정합성의 기준이 아니라 “Redis 좌석 게이트를 사용하지 않았다”는 관측 결과로 해석해야 한다.</p>
+      <p>Redisson Lock의 장점은 명확한 직렬화다. 여러 인스턴스가 같은 Concert에 접근하더라도 Redis lock을 통해 진입을 제한할 수 있다. 그러나 이번 workload처럼 같은 Concert 하나에 100 VU가 몰리는 경우에는 lock 획득 자체가 병목이 된다. <code>reservation.redis.lock-wait-ms</code>를 짧게 유지하면 긴 대기 대신 빠른 <code>lock_acquire_failed</code>를 반환한다. 이는 DB 정합성 실패는 아니지만 사용자 경험과 처리량에는 직접적인 손실이다.</p>
+      <p>따라서 Redisson Lock은 단순 counted-seat decrement의 기본 전략으로 보기 어렵다. 이미 DB Atomic Conditional Update가 같은 정합성을 더 단순하게 보장한다면, Redis lock은 “DB update만으로 표현하기 어려운 여러 리소스의 임계구역”이 있을 때 별도로 검토하는 편이 맞다.</p>
+      <h2 id="redis-lua-atomic-decrement-result">Redis Lua Atomic Decrement Result</h2>
+      <p>Redis Lua 전략은 Redis Remaining Seats를 빠른 gate로 사용한다. Lua script는 Redis key를 읽고, 값이 없거나 0 이하이면 실패를 반환한다. 값이 1 이상이면 Redis에서 먼저 <code>DECR</code>을 수행한다. 이후 DB Atomic Conditional Update와 Reservation 저장을 실행한다.</p>
+      <p>이 전략은 이번 측정에서 가장 높은 RPS와 가장 낮은 p95를 보였다.</p>
+      <div class="table-wrap"><table><thead><tr><th>Metric</th><th>Value</th><th>Evidence</th></tr></thead><tbody><tr><td>RPS</td><td>3547.25 req/s</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6 summary</a></td></tr>
+<tr><td>p95</td><td>44.38 ms</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6 summary</a></td></tr>
+<tr><td>p99</td><td>1409.77 ms</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/prometheus/http-req-duration-p99.txt">Prometheus p99</a></td></tr>
+<tr><td>Reserved</td><td>100</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6 summary</a></td></tr>
+<tr><td>Sold Out</td><td>36,414</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6 summary</a></td></tr>
+<tr><td>Redis/DB Sync Failed</td><td>0</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">k6 summary</a></td></tr>
+<tr><td>Redis Remaining Seats</td><td>0</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/redis/remaining-seats.txt">Redis snapshot</a></td></tr>
+<tr><td>DB Consistency</td><td>PASS</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/sql/consistency.txt">SQL</a></td></tr></tbody></table></div>
+      <p>RPS가 높은 이유는 대부분의 요청이 좌석 소진 이후 Redis에서 바로 <code>sold_out</code>으로 종료되었기 때문이다. DB에는 성공 가능한 100건만 주로 도달한다. 따라서 Redis Lua는 sold-out 이후의 DB 부하를 크게 줄일 수 있다.</p>
+      <p>다만 p99가 1409.77 ms로 높게 잡혔다. k6 summary의 p95는 44.38 ms로 매우 낮지만, Prometheus p99는 성공 예약 초기에 발생한 긴 요청 tail을 더 크게 반영한 것으로 보인다. 이 결과는 “대부분의 sold-out 요청은 매우 빠르지만, Redis 차감 후 DB까지 쓰는 성공 경로는 여전히 tail latency를 만들 수 있다”는 뜻으로 해석하는 것이 맞다.</p>
+      <p>Redis Lua의 운영상 핵심 비용은 보상 처리다. Redis 차감은 성공했지만 DB 저장이 실패하면 Redis Remaining Seats를 되돌려야 한다. 이 경로는 <code>RedisLuaCompensationTest</code>로 검증했고, 정상 k6 성능 측정에서는 <code>redis_db_sync_failed</code>가 발생하지 않았다. 그러나 실제 운영에서는 이 counter가 0으로 유지되는지 반드시 관측해야 한다.</p>
+      <h2 id="compensation-result">Compensation Result</h2>
+      <div class="table-wrap"><table><thead><tr><th>Scenario</th><th>Result</th><th>Evidence</th></tr></thead><tbody><tr><td>Redis decrement success, DB save failure</td><td>PASS</td><td><a href="../../../concurrency/src/test/java/com/example/concurrency/RedisLuaCompensationTest.java">RedisLuaCompensationTest</a></td></tr></tbody></table></div>
+      <p>보상 테스트는 <code>DbReservationWriter</code>를 mock 처리해 DB 저장 실패를 강제로 만들었다. Redis Lua가 Remaining Seats를 1에서 0으로 차감한 뒤 DB 실패가 발생하면 <code>compensateDecrement()</code>가 실행되어 Redis Remaining Seats가 다시 1로 복구된다. 이 테스트는 Redis Lua 전략을 운영 전략으로 고려할 때 최소한의 안전장치다.</p>
+      <h2 id="consistency-result">Consistency Result</h2>
+      <div class="table-wrap"><table><thead><tr><th>Strategy</th><th>Reservation Count</th><th>Remaining Seats</th><th>Seat Count Inconsistency</th><th>Overbooking</th><th>Redis Remaining Seats</th><th>Evidence</th></tr></thead><tbody><tr><td>Atomic Conditional Update pool 10</td><td>100</td><td>0</td><td>0</td><td>false</td><td>N/A</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/sql/consistency.txt">SQL</a></td></tr>
+<tr><td>Atomic Conditional Update pool 50</td><td>100</td><td>0</td><td>0</td><td>false</td><td>N/A</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/sql/consistency.txt">SQL</a></td></tr>
+<tr><td>Redisson Lock</td><td>100</td><td>0</td><td>0</td><td>false</td><td>100</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt">SQL</a>, <a href="../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt">Redis</a></td></tr>
+<tr><td>Redis Lua Atomic Decrement</td><td>100</td><td>0</td><td>0</td><td>false</td><td>0</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/sql/consistency.txt">SQL</a>, <a href="../../evidence/05-redis-strategies/redis-lua/baseline/redis/remaining-seats.txt">Redis</a></td></tr></tbody></table></div>
+      <p>네 조건 모두 DB 기준 counted-seat invariant를 만족했다.</p>
+      <pre><code class="language-text">reservation_count + remaining_seats = initial_seat_count
+100 + 0 = 100</code></pre>
+      <p>Redisson Lock의 Redis Remaining Seats가 100인 것은 불일치가 아니다. Redisson 전략은 Redis Remaining Seats를 예약 판단에 사용하지 않는다. Redis Lua의 Redis Remaining Seats가 0인 것은 Redis gate와 DB 최종 상태가 같은 방향으로 수렴했다는 의미다.</p>
+      <h2 id="evidence-inventory">Evidence Inventory</h2>
+      <div class="table-wrap"><table><thead><tr><th>Evidence</th><th>Path</th></tr></thead><tbody><tr><td>Atomic pool 10 k6 summary</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-10-20260528-103145-summary.json">phase5-atomic-baseline-prometheus-atomic-pool-10-20260528-103145-summary.json</a></td></tr>
+<tr><td>Atomic pool 50 k6 summary</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-atomic-baseline-prometheus-atomic-pool-50-20260528-103247-summary.json">phase5-atomic-baseline-prometheus-atomic-pool-50-20260528-103247-summary.json</a></td></tr>
+<tr><td>Redisson k6 summary</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json">phase5-redisson-lock-prometheus-baseline-20260528-103357-summary.json</a></td></tr>
+<tr><td>Redis Lua k6 summary</td><td><a href="../../evidence/05-redis-strategies/k6/phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json">phase5-redis-lua-prometheus-baseline-20260528-103429-summary.json</a></td></tr>
+<tr><td>Atomic pool 10 SQL</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-10/sql/consistency.txt">consistency.txt</a></td></tr>
+<tr><td>Atomic pool 50 SQL</td><td><a href="../../evidence/05-redis-strategies/atomic-baseline/atomic-pool-50/sql/consistency.txt">consistency.txt</a></td></tr>
+<tr><td>Redisson SQL</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/sql/consistency.txt">consistency.txt</a></td></tr>
+<tr><td>Redis Lua SQL</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/sql/consistency.txt">consistency.txt</a></td></tr>
+<tr><td>Redisson Redis snapshot</td><td><a href="../../evidence/05-redis-strategies/redisson-lock/baseline/redis/remaining-seats.txt">remaining-seats.txt</a></td></tr>
+<tr><td>Redis Lua Redis snapshot</td><td><a href="../../evidence/05-redis-strategies/redis-lua/baseline/redis/remaining-seats.txt">remaining-seats.txt</a></td></tr></tbody></table></div>
+      <h2 id="findings">Findings</h2>
+      <p>첫째, Atomic Conditional Update는 여전히 가장 단순한 기본 전략이다. Redis 없이 DB row update와 Reservation insert만으로 최종 정합성을 지킨다. pool 10과 pool 50 모두 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0을 기록했다. 운영 구성 요소가 적고, Redis 장애나 Redis/DB 보상 문제를 고려하지 않아도 된다.</p>
+      <p>둘째, Redisson Lock은 정합성은 지켰지만 처리량이 낮았다. 이번 측정에서 Redisson은 555.21 req/s로 Atomic pool 10의 1211.71 req/s보다 낮았다. lock을 얻지 못한 요청 4,347건은 HTTP failure가 아니라 예상된 409 응답으로 분류되었지만, 실제 사용자 관점에서는 예약 시도가 빠르게 실패한 것이다. Redisson Lock은 DB 정합성 보장을 위해 반드시 필요한 전략이라기보다, 여러 작업을 하나의 분산 임계구역으로 묶어야 할 때 선택할 수 있는 전략이다.</p>
+      <p>셋째, Redis Lua는 sold-out 이후 DB 부하를 줄이는 데 가장 효과적이었다. Redis Lua는 3547.25 req/s를 기록했고 p95도 44.38 ms로 가장 낮았다. 다만 이 수치는 대부분의 요청이 Redis에서 빠르게 <code>sold_out</code>으로 종료된 workload의 특성을 반영한다. 성공 예약 경로는 여전히 DB write를 포함하며, Prometheus p99에서 긴 tail이 관측됐다.</p>
+      <p>넷째, Redis Lua는 성능 이점 대신 보상 복잡도를 가져온다. Redis 차감 성공 후 DB 저장이 실패하면 Redis 값을 되돌려야 한다. 이번 구현은 이 경로를 <code>RedisLuaCompensationTest</code>로 검증했고, 정상 부하 측정에서는 <code>redis_db_sync_failed</code>가 발생하지 않았다. 하지만 운영에서는 compensation counter와 Redis/DB consistency evidence가 필수다.</p>
+      <p>다섯째, 이번 Phase 5 결과는 “Redis를 쓰면 항상 더 낫다”가 아니라 “Redis가 어떤 실패와 운영 책임을 새로 만드는지”를 보여준다. Redisson은 lock 실패 응답을 만든다. Redis Lua는 Redis/DB 이중 상태와 보상 로직을 만든다. Atomic Conditional Update는 가장 높은 절대 처리량은 아니지만, 단일 DB source of truth라는 단순성을 유지한다.</p>
+      <h2 id="decision">Decision</h2>
+      <p>기본 Reservation 전략은 <strong>DB Atomic Conditional Update</strong>로 유지한다.</p>
+      <p>현재 도메인은 단일 Concert row의 Remaining Seats를 차감하고 Reservation을 저장하는 counted-seat model이다. 이 범위에서는 DB Atomic Conditional Update가 가장 단순하고 충분하다. 정합성을 DB 하나에서 보장할 수 있고, Redis 장애나 Redis/DB 보상 실패를 운영 리스크로 추가하지 않는다.</p>
+      <p>Redisson Lock은 기본 전략으로 채택하지 않는다. Redisson은 정합성을 지켰지만, 단일 row decrement 문제에서는 DB Atomic Conditional Update보다 복잡하고 느렸다. lock-acquire failure가 의미 있는 사용자 실패 응답으로 나타나므로, 운영에서 이 전략을 쓰려면 lock wait, lease time, retry 정책, lock failure UX를 별도로 설계해야 한다.</p>
+      <p>Redis Lua는 상황부 전략으로 둔다. sold-out 이후 DB 부하를 줄이는 효과는 분명하다. 특히 매우 높은 매진 후 요청이 들어오고, DB를 보호해야 하는 상황에서는 유효할 수 있다. 하지만 Redis Remaining Seats와 DB Remaining Seats라는 이중 상태를 운영해야 하며, DB 실패 시 보상 로직과 compensation monitoring이 반드시 필요하다. Redis Lua를 기본 전략으로 올리려면 다음 조건이 추가로 충족되어야 한다.</p>
+      <ul><li><code>reservation.redis.compensation</code> counter가 정상 부하에서 0으로 유지되는지 관측한다.</li><li>Redis Remaining Seats와 DB consistency SQL을 모든 측정 run마다 함께 저장한다.</li><li>Redis 장애, Redis key missing, DB write 실패, 보상 실패에 대한 runbook을 별도로 둔다.</li><li>성공 예약 경로의 tail latency를 더 긴 duration과 더 다양한 Concert 분포에서 재측정한다.</li></ul>
+      <p>따라서 Phase 5의 결론은 다음과 같다.</p>
+      <blockquote><p>단일 Concert Remaining Seats 차감과 Reservation insert만 있는 현재 범위에서는 DB Atomic Conditional Update를 기본 전략으로 유지한다. Redisson Lock과 Redis Lua는 운영상 이유가 명확할 때만 선택하는 보조 전략으로 둔다.</p></blockquote>
+      <h2 id="next-phase-input">Next Phase Input</h2>
+      <p>Phase 6에서는 counted-seat invariant가 보호된 상태를 전제로, 중복 요청과 idempotency를 검증해야 한다.</p>
+      <p>특히 같은 User가 같은 Concert에 여러 번 요청하는 경우를 분리해서 다뤄야 한다. Phase 5까지는 “총 좌석 수를 초과하지 않는가”를 중심으로 검증했다. Phase 6에서는 “같은 User가 중복 Reservation을 만들지 않는가”, “재시도 요청이 같은 결과로 수렴하는가”, “결제나 외부 API와 연결될 때 idempotency key를 어떻게 관리할 것인가”를 검증해야 한다.</p>
+    </article>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap">
+      Phase 5 HTML 리포트 · 원문과 evidence 링크는 <a href="report.md">report.md</a>에서 확인
+    </div>
+  </footer>
+</body>
+</html>
