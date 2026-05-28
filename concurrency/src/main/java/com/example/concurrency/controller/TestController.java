@@ -1,6 +1,7 @@
 package com.example.concurrency.controller;
 
 import com.example.concurrency.domain.Concert;
+import com.example.concurrency.redis.RedisSeatStore;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
 import org.springframework.http.ResponseEntity;
@@ -22,11 +23,14 @@ public class TestController {
 
     private final ConcertRepository concertRepository;
     private final ReservationRepository reservationRepository;
+    private final RedisSeatStore redisSeatStore;
 
     public TestController(ConcertRepository concertRepository,
-                          ReservationRepository reservationRepository) {
+                          ReservationRepository reservationRepository,
+                          RedisSeatStore redisSeatStore) {
         this.concertRepository = concertRepository;
         this.reservationRepository = reservationRepository;
+        this.redisSeatStore = redisSeatStore;
     }
 
     @GetMapping
@@ -52,6 +56,7 @@ public class TestController {
             concert.resetRemainingSeats(100);
         }
         concertRepository.save(concert);
+        redisSeatStore.initializeRemainingSeats(PHASE2_CONCERT_ID, PHASE2_INITIAL_SEAT_COUNT);
 
         return ResponseEntity.ok(Map.of("status", "reset", "remainingSeats", "100"));
     }
@@ -71,6 +76,7 @@ public class TestController {
         body.put("initialSeatCount", PHASE2_INITIAL_SEAT_COUNT);
         body.put("reservationCount", reservationCount);
         body.put("remainingSeats", remainingSeats);
+        body.put("redisRemainingSeats", redisSeatStore.getRemainingSeats(PHASE2_CONCERT_ID));
         body.put("seatCountInconsistency", seatCountInconsistency);
         body.put("overbooked", overbooked);
 
