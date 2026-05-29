@@ -1,0 +1,96 @@
+---
+title: DB Operational Limits
+sidebar_label: Portfolio
+description: DB 기반 Reservation 전략의 pool size, lock wait, lock timeout 운영 한계 분석
+---
+
+# DB Operational Limits
+
+Phase 4는 같은 Reservation correctness를 유지하는 DB 전략이라도 운영 파라미터에 따라 처리량, tail latency, connection pressure, row lock wait가 어떻게 달라지는지 측정한 실험이다.
+
+Full technical report: [report.md](./report.md)
+
+## Problem
+
+Concert Reservation은 한정된 Remaining Seats를 여러 User가 동시에 차감하는 counted-seat 모델이다. Phase 3에서는 DB 기반 전략들이 Seat Count Inconsistency와 Overbooking을 막을 수 있음을 확인했다.
+
+Phase 4의 질문은 correctness 이후의 운영 한계다.
+
+- Atomic Conditional Update는 pool size를 키울수록 계속 빨라지는가?
+- Pessimistic Lock은 같은 Concert row 경합에서 어떤 tail latency를 만드는가?
+- `lock_timeout`은 긴 lock wait를 빠른 controlled failure로 바꿀 수 있는가?
+- sold-out과 timeout 이후에도 `reservation_count + remaining_seats == initial_seat_count`가 유지되는가?
+
+## Experiment Setup
+
+모든 실행은 같은 workload로 비교했다.
+
+| Condition | Value |
+|---|---:|
+| Concert | 1 |
+| Initial Seat Count | 100 |
+| Virtual Users | 100 |
+| Duration | 10 seconds |
+| Workload shape | sold-out-dominant repeated reservation requests |
+
+측정값은 k6 summary JSON, HikariCP Prometheus summary, PostgreSQL lock snapshots, consistency SQL 결과에서 읽었다. Hikari summary는 k6 본 실행 구간인 `startedAt`부터 `endedAt`까지만 사용했고, `hikariMaxMin == hikariMaxMax == runWindow.pool` 조건을 만족한 값만 표에 반영했다.
+
+## Key Result
+
+모든 조건에서 최종 상태는 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0, Overbooking `false`였다. 따라서 이 phase의 차이는 correctness가 아니라 운영 성능과 병목의 차이다.
+
+| Strategy | Representative Condition | RPS | p99 | Hikari Pending Max | Interpretation |
+|---|---:|---:|---:|---:|---|
+| Atomic Conditional Update | pool 10 | 1139.19 | 504.14 ms | 86 | 보수적 DB baseline 후보 |
+| Atomic Conditional Update | pool 50 | 1394.80 | 275.39 ms | 20 | 처리량 상한 참고 조건 |
+| Pessimistic Lock | pool 10 | 647.38 | 562.84 ms | 89 | row lock wait가 tail latency로 전이 |
+| Pessimistic Lock | pool 50 | 695.33 | 612.61 ms | 49 | connection을 늘려도 row 경합은 해소되지 않음 |
+
+Atomic Conditional Update는 pool 5, 20, 50에서 비슷한 상위 처리량 구간을 형성했다. 반면 Pessimistic Lock은 correctness를 지키지만, 단일 Concert row에 요청이 몰리는 workload에서 `select ... for no key update` 대기가 tail latency를 만들었다.
+
+## Lock Wait Evidence
+
+Pessimistic Lock의 대표 조건인 pool 10과 pool 50에서 PostgreSQL activity를 캡처했다.
+
+| Condition | Evidence | Observation |
+|---|---|---|
+| pool 10 | [`pg_stat_activity.txt`](../../evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-stat-activity.txt) | active backend 9개가 tuple 또는 transactionid Lock wait 상태 |
+| pool 50 | [`pg_stat_activity.txt`](../../evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-stat-activity.txt) | 다수 backend가 같은 `select ... for no key update` 쿼리에서 tuple Lock wait 상태 |
+
+이 증거는 Pessimistic Lock의 p99가 Atomic보다 높게 나온 이유를 애플리케이션 지연이 아니라 DB row lock serialization으로 설명한다.
+
+## Timeout Finding
+
+Pessimistic Lock에 `lock_timeout` 200ms, 500ms, 1000ms를 적용했지만 이번 sold-out-dominant workload에서는 HTTP 408이 관측되지 않았다.
+
+| Lock Timeout | Reserved | Sold Out | Lock Timeout | Unexpected | p99 |
+|---:|---:|---:|---:|---:|---:|
+| 200 ms | 100 | 7223 | 0 | 0 | 552.80 ms |
+| 500 ms | 100 | 8050 | 0 | 0 | 533.89 ms |
+| 1000 ms | 100 | 8398 | 0 | 0 | 452.13 ms |
+
+이 결과는 `lock_timeout`이 효과 없다는 결론이 아니다. 이번 workload가 빠르게 sold-out 상태로 전환되어 긴 lock wait를 충분히 만들지 못했다는 한계다. timeout-stress 실험에서는 재고가 충분히 남은 상태에서 Pessimistic row lock 경합을 길게 유지해 408 controlled failure를 별도로 검증해야 한다.
+
+## Decision
+
+Phase 5 Redis 비교의 DB baseline은 Atomic Conditional Update로 둔다.
+
+- 보수적 운영 기준: Atomic Conditional Update, pool size 10
+- 처리량 상한 참고 기준: Atomic Conditional Update, pool size 50
+- correctness reference: Pessimistic Lock
+
+pool size 10은 이번 단일 실행의 최고 처리량 지점은 아니지만, active connection 수를 과도하게 늘리지 않으면서 invariant와 충분한 처리량을 유지하는 보수적 비교 기준이다. pool size 50은 처리량 상한을 확인하기 위한 참고 조건으로만 사용한다.
+
+## What This Demonstrates
+
+- DB concurrency strategy를 correctness만이 아니라 throughput, p95/p99, connection pressure, lock wait로 분해해 평가했다.
+- k6 custom counters와 SQL consistency query를 함께 사용해 성공, sold-out, timeout, unexpected response를 분리했다.
+- Prometheus HikariCP metric의 측정 구간을 검증해 stale scrape나 잘못된 pool 값이 표에 섞이지 않도록 했다.
+- PostgreSQL `pg_stat_activity`와 `pg_locks`를 사용해 tail latency의 원인을 row lock serialization으로 좁혔다.
+
+## Limitations
+
+- 각 조건은 단일 실행 결과이므로 최적 pool size 확정에는 반복 실행과 분산 비교가 필요하다.
+- Grafana dashboard capture는 모든 조건이 아니라 대표 조건에 한정했다.
+- timeout 실험은 sold-out-dominant workload였기 때문에 HTTP 408 controlled failure를 직접 유도하지 못했다.
+
