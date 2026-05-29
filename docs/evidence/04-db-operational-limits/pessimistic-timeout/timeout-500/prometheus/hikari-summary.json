@@ -10,45 +10,69 @@
     "endedAt": 1780023147000,
     "grafanaFrom": 1780023126000,
     "grafanaTo": 1780023167000,
-    "range": "41s",
-    "queryTime": 1780023167
+    "evidenceRange": "11s",
+    "grafanaRange": "41s",
+    "queryTime": 1780023147
   },
   "prometheusUrl": "http://localhost:9090",
   "queries": {
-    "hikariMax": {
-      "query": "max(hikaricp_connections_max)",
+    "hikariMaxMin": {
+      "query": "min_over_time(hikaricp_connections_max[11s])",
       "value": 10,
       "rawResult": [
         {
-          "metric": {},
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
           "value": [
-            1780023167,
+            1780023147,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariMaxMax": {
+      "query": "max_over_time(hikaricp_connections_max[11s])",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780023147,
             "10"
           ]
         }
       ]
     },
     "hikariActiveMax": {
-      "query": "max(max_over_time(hikaricp_connections_active[41s]))",
+      "query": "max(max_over_time(hikaricp_connections_active[11s]))",
       "value": 10,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023167,
+            1780023147,
             "10"
           ]
         }
       ]
     },
     "hikariPendingMax": {
-      "query": "max(max_over_time(hikaricp_connections_pending[41s]))",
+      "query": "max(max_over_time(hikaricp_connections_pending[11s]))",
       "value": 89,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023167,
+            1780023147,
             "89"
           ]
         }

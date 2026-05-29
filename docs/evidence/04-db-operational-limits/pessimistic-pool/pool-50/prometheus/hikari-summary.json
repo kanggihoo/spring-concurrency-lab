@@ -10,46 +10,70 @@
     "endedAt": 1780023098000,
     "grafanaFrom": 1780023077000,
     "grafanaTo": 1780023118000,
-    "range": "41s",
-    "queryTime": 1780023118
+    "evidenceRange": "11s",
+    "grafanaRange": "41s",
+    "queryTime": 1780023098
   },
   "prometheusUrl": "http://localhost:9090",
   "queries": {
-    "hikariMax": {
-      "query": "max(hikaricp_connections_max)",
-      "value": 10,
+    "hikariMaxMin": {
+      "query": "min_over_time(hikaricp_connections_max[11s])",
+      "value": 50,
       "rawResult": [
         {
-          "metric": {},
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
           "value": [
-            1780023118,
-            "10"
+            1780023098,
+            "50"
+          ]
+        }
+      ]
+    },
+    "hikariMaxMax": {
+      "query": "max_over_time(hikaricp_connections_max[11s])",
+      "value": 50,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780023098,
+            "50"
           ]
         }
       ]
     },
     "hikariActiveMax": {
-      "query": "max(max_over_time(hikaricp_connections_active[41s]))",
+      "query": "max(max_over_time(hikaricp_connections_active[11s]))",
       "value": 50,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023118,
+            1780023098,
             "50"
           ]
         }
       ]
     },
     "hikariPendingMax": {
-      "query": "max(max_over_time(hikaricp_connections_pending[41s]))",
-      "value": 89,
+      "query": "max(max_over_time(hikaricp_connections_pending[11s]))",
+      "value": 49,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023118,
-            "89"
+            1780023098,
+            "49"
           ]
         }
       ]

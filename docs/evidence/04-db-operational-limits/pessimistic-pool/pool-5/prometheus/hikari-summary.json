@@ -10,45 +10,69 @@
     "endedAt": 1780023024000,
     "grafanaFrom": 1780023002000,
     "grafanaTo": 1780023044000,
-    "range": "42s",
-    "queryTime": 1780023044
+    "evidenceRange": "12s",
+    "grafanaRange": "42s",
+    "queryTime": 1780023024
   },
   "prometheusUrl": "http://localhost:9090",
   "queries": {
-    "hikariMax": {
-      "query": "max(hikaricp_connections_max)",
+    "hikariMaxMin": {
+      "query": "min_over_time(hikaricp_connections_max[12s])",
       "value": 5,
       "rawResult": [
         {
-          "metric": {},
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
           "value": [
-            1780023044,
+            1780023024,
+            "5"
+          ]
+        }
+      ]
+    },
+    "hikariMaxMax": {
+      "query": "max_over_time(hikaricp_connections_max[12s])",
+      "value": 5,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780023024,
             "5"
           ]
         }
       ]
     },
     "hikariActiveMax": {
-      "query": "max(max_over_time(hikaricp_connections_active[42s]))",
+      "query": "max(max_over_time(hikaricp_connections_active[12s]))",
       "value": 5,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023044,
+            1780023024,
             "5"
           ]
         }
       ]
     },
     "hikariPendingMax": {
-      "query": "max(max_over_time(hikaricp_connections_pending[42s]))",
+      "query": "max(max_over_time(hikaricp_connections_pending[12s]))",
       "value": 94,
       "rawResult": [
         {
           "metric": {},
           "value": [
-            1780023044,
+            1780023024,
             "94"
           ]
         }

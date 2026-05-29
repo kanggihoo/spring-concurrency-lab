@@ -6,7 +6,7 @@ Hardened with timeout limitation
 
 ## Goal
 
-Phase 3에서 확인한 DB 기반 Reservation 전략이 pool size, lock wait, `lock_timeout` 변화에 따라 어떤 운영 한계를 보이는지 수치로 확인한다.
+Phase 3에서 확인한 DB 기반 Reservation 전략을 pool size, row lock wait, `lock_timeout` 변화에 따라 비교하고 운영 한계를 수치로 확인한다.
 
 ## Documents
 
