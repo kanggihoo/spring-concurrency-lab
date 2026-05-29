@@ -68,6 +68,11 @@ export const options = {
 };
 
 export function setup() {
+  reservedResponses.add(0);
+  soldOutResponses.add(0);
+  lockTimeoutResponses.add(0);
+  unexpectedResponses.add(0);
+
   if (preset.resetBeforeRun === false) {
     return;
   }
