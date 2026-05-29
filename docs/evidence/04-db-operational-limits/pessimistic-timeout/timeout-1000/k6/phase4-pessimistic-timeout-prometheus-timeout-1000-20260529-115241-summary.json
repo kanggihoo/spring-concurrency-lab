@@ -1,0 +1,209 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "reset OK": {
+                            "name": "reset OK",
+                            "path": "::setup::reset OK",
+                            "id": "319d421847c56611759a656efdee0864",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            },
+            "teardown": {
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {},
+                "checks": {
+                        "consistency snapshot OK": {
+                            "name": "consistency snapshot OK",
+                            "path": "::teardown::consistency snapshot OK",
+                            "id": "8e00c90823ee0a139e6a5ec935b6019b",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            }
+        },
+        "checks": {
+            "status is expected": {
+                "path": "::status is expected",
+                "id": "7900b1724c781e002b4ea556d2517ccc",
+                "passes": 8498,
+                "fails": 0,
+                "name": "status is expected"
+            }
+        }
+    },
+    "metrics": {
+        "http_reqs": {
+            "count": 8500,
+            "rate": 823.8650267129685
+        },
+        "concert_overbooked": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "reservation_unexpected_status": {
+            "count": 0,
+            "rate": 0
+        },
+        "http_req_connecting": {
+            "max": 60.89671,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 22.18917865000018,
+            "avg": 0.3247891521176471,
+            "min": 0,
+            "med": 0
+        },
+        "data_received": {
+            "count": 1241125,
+            "rate": 120296.40956225096
+        },
+        "http_req_duration": {
+            "p(90)": 146.6259952,
+            "p(95)": 178.74450884999982,
+            "p(99)": 452.1323980500009,
+            "avg": 117.6635515009411,
+            "min": 2.567102,
+            "med": 103.18497450000001,
+            "max": 755.088793,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "reservation_reserved": {
+            "count": 100,
+            "rate": 9.692529726034925
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 8500,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "data_sent": {
+            "count": 1605657,
+            "rate": 155628.78202316057
+        },
+        "checks": {
+            "fails": 0,
+            "passes": 8500,
+            "value": 1
+        },
+        "iteration_duration": {
+            "p(95)": 179.28704299999998,
+            "p(99)": 467.47613974000046,
+            "avg": 118.14793608037198,
+            "min": 2.67371,
+            "med": 103.33793650000001,
+            "max": 783.512491,
+            "p(90)": 146.7694366
+        },
+        "reservation_sold_out": {
+            "count": 8398,
+            "rate": 813.978646392413
+        },
+        "reservation_lock_timeout": {
+            "count": 0,
+            "rate": 0
+        },
+        "http_req_waiting": {
+            "med": 103.03121250000001,
+            "max": 754.641759,
+            "p(90)": 146.3768852,
+            "p(95)": 178.44774634999987,
+            "p(99)": 451.63728934000096,
+            "avg": 117.47638123011794,
+            "min": 2.488696
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_blocked": {
+            "med": 0.0036,
+            "max": 60.925412,
+            "p(90)": 0.0047,
+            "p(95)": 0.005501,
+            "p(99)": 22.21849268000019,
+            "avg": 0.33120872929411826,
+            "min": 0.0021
+        },
+        "http_req_sending": {
+            "avg": 0.021429864235294048,
+            "min": 0.0068,
+            "med": 0.013201,
+            "max": 2.074561,
+            "p(90)": 0.038303,
+            "p(95)": 0.042704,
+            "p(99)": 0.1047170000000002
+        },
+        "http_req_receiving": {
+            "p(95)": 0.4333389999999999,
+            "p(99)": 0.7226660000000001,
+            "avg": 0.16574040658823552,
+            "min": 0.027402,
+            "med": 0.11365900000000001,
+            "max": 4.216826,
+            "p(90)": 0.3205550000000001
+        },
+        "iterations": {
+            "rate": 823.6711761184479,
+            "count": 8498
+        },
+        "vus": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0,
+            "min": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(95)": 178.74450884999982,
+            "p(99)": 452.1323980500009,
+            "avg": 117.6635515009411,
+            "min": 2.567102,
+            "med": 103.18497450000001,
+            "max": 755.088793,
+            "p(90)": 146.6259952
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        }
+    }
+}

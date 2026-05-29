@@ -1,0 +1,58 @@
+{
+  "runWindow": {
+    "path": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\04-db-operational-limits\\pessimistic-timeout\\timeout-1000\\grafana\\run-window-phase4-pessimistic-timeout-prometheus-timeout-1000-20260529-115241.json",
+    "phase": "phase-04",
+    "scenario": "pessimistic",
+    "preset": "lock-timeout",
+    "pool": "10",
+    "mode": "prometheus",
+    "startedAt": 1780023161000,
+    "endedAt": 1780023173000,
+    "grafanaFrom": 1780023151000,
+    "grafanaTo": 1780023193000,
+    "range": "42s",
+    "queryTime": 1780023193
+  },
+  "prometheusUrl": "http://localhost:9090",
+  "queries": {
+    "hikariMax": {
+      "query": "max(hikaricp_connections_max)",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023193,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariActiveMax": {
+      "query": "max(max_over_time(hikaricp_connections_active[42s]))",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023193,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariPendingMax": {
+      "query": "max(max_over_time(hikaricp_connections_pending[42s]))",
+      "value": 89,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023193,
+            "89"
+          ]
+        }
+      ]
+    }
+  }
+}

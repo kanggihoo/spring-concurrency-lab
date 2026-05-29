@@ -1,0 +1,58 @@
+{
+  "runWindow": {
+    "path": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\04-db-operational-limits\\pessimistic-pool\\pool-50\\grafana\\run-window-phase4-pessimistic-pool-prometheus-pool-50-20260529-115126.json",
+    "phase": "phase-04",
+    "scenario": "pessimistic",
+    "preset": "pool-lock-wait",
+    "pool": "50",
+    "mode": "prometheus",
+    "startedAt": 1780023087000,
+    "endedAt": 1780023098000,
+    "grafanaFrom": 1780023077000,
+    "grafanaTo": 1780023118000,
+    "range": "41s",
+    "queryTime": 1780023118
+  },
+  "prometheusUrl": "http://localhost:9090",
+  "queries": {
+    "hikariMax": {
+      "query": "max(hikaricp_connections_max)",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023118,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariActiveMax": {
+      "query": "max(max_over_time(hikaricp_connections_active[41s]))",
+      "value": 50,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023118,
+            "50"
+          ]
+        }
+      ]
+    },
+    "hikariPendingMax": {
+      "query": "max(max_over_time(hikaricp_connections_pending[41s]))",
+      "value": 89,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780023118,
+            "89"
+          ]
+        }
+      ]
+    }
+  }
+}

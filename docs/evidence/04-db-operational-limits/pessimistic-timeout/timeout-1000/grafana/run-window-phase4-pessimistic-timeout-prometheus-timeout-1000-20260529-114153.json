@@ -1,0 +1,12 @@
+{
+  "phase": "phase-04",
+  "scenario": "pessimistic",
+  "preset": "lock-timeout",
+  "pool": "10",
+  "mode": "prometheus",
+  "exitStatus": 0,
+  "startedAt": 1780022513000,
+  "endedAt": 1780022525000,
+  "grafanaFrom": 1780022503000,
+  "grafanaTo": 1780022545000
+}
