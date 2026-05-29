@@ -4,37 +4,30 @@
 
 | Area | Metric | Purpose |
 |---|---|---|
-| PostgreSQL | pg_locks | lock wait 확인 |
-| PostgreSQL | pg_stat_activity | blocking query 확인 |
-| Spring | hikaricp_connections_active | 커넥션 점유 |
-| Spring | hikaricp_connections_pending | 커넥션 대기 |
-| Spring | hikaricp_connections_max | 적용된 pool size 확인 |
-| k6 | p99 | tail latency 악화 확인 |
-| k6 | status distribution | `reserved`, `sold_out`, `lock_timeout` 응답 분포 확인 |
-
-## SQL
+| PostgreSQL | `pg_locks` | lock mode, granted state, relation별 lock 분포 확인 |
+| PostgreSQL | `pg_stat_activity` | wait event, query age, blocking PID 확인 |
+| Spring | `hikaricp_connections_active` | 사용 중인 DB connection 수 확인 |
+| Spring | `hikaricp_connections_pending` | DB connection 대기 pressure 확인 |
+| Spring | `hikaricp_connections_max` | 관측된 Hikari pool max 확인 |
+| k6 | `http_req_duration` | p95/p99 latency source of truth |
+| k6 | `reservation_reserved` | HTTP 200 Reservation 성공 수 |
+| k6 | `reservation_sold_out` | HTTP 409 sold-out 응답 수 |
+| k6 | `reservation_lock_timeout` | HTTP 408 lock timeout 응답 수 |
+| k6 | `reservation_unexpected_status` | expected status 외 응답 수 |
 
 ## PostgreSQL Lock Evidence
 
-- `scripts/sql/pg-lock-wait-snapshot.sql`: stores wait event, query age, transaction age, blocking PID, and query text from `pg_stat_activity`.
-- `scripts/sql/pg-lock-summary.sql`: summarizes `pg_locks` by lock type, relation, mode, and granted state.
+- `scripts/sql/pg-lock-wait-snapshot.sql`: `pg_stat_activity`에서 wait event, query age, transaction age, blocking PID, query text를 저장한다.
+- `scripts/sql/pg-lock-summary.sql`: `pg_locks`를 lock type, relation, mode, granted 상태별 count로 요약한다.
 
-Capture these files as separate evidence during Pessimistic Lock `pool-10` and `pool-50` runs.
+Pessimistic Lock 대표 조건인 `pool-10`, `pool-50` 실행 중 별도 evidence 파일로 캡처한다.
 
-```sql
-SELECT pid, locktype, relation::regclass, mode, granted
-FROM pg_locks
-WHERE NOT granted;
-```
+## Hikari Evidence
 
-```sql
-SELECT pid, state, wait_event_type, wait_event, query
-FROM pg_stat_activity
-WHERE wait_event IS NOT NULL;
-```
+각 k6 run-window JSON 기준으로 `scripts/export-hikari-summary.js`를 실행해 다음 값을 `prometheus/hikari-summary.json`에 저장한다.
 
-```sql
-SHOW lock_timeout;
-```
+- `max(hikaricp_connections_max)`
+- `max(max_over_time(hikaricp_connections_active[run_window]))`
+- `max(max_over_time(hikaricp_connections_pending[run_window]))`
 
-`SHOW lock_timeout`은 현재 SQL session의 설정만 보여준다. Hikari `connection-init-sql`로 설정한 값은 애플리케이션 connection에 적용되므로, psql session에서 항상 같은 값이 보인다고 가정하지 않는다.
+Grafana screenshot은 시각 자료이고, report table의 Hikari 값은 JSON evidence를 기준으로 한다.

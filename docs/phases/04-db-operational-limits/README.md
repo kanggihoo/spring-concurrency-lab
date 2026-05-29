@@ -2,7 +2,7 @@
 
 ## Status
 
-Planned
+Hardened with timeout limitation
 
 ## Goal
 
