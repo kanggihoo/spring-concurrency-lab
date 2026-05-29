@@ -5,6 +5,7 @@
   "preset": "pool-limit",
   "pool": "10",
   "path": "/api/reservations/atomic",
+  "expectedStatuses": [200, 409],
   "executor": "constant-vus",
   "vus": 100,
   "duration": "10s",

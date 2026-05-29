@@ -5,6 +5,7 @@
   "preset": "lock-timeout",
   "pool": "10",
   "path": "/api/reservations/pessimistic",
+  "expectedStatuses": [200, 409, 408],
   "executor": "constant-vus",
   "vus": 100,
   "duration": "10s",

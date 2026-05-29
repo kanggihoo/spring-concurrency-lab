@@ -1,13 +1,18 @@
 import http from "k6/http";
 import { check, sleep } from "k6";
-import { Gauge } from "k6/metrics";
+import { Counter, Gauge } from "k6/metrics";
 
 const presetPath = __ENV.PRESET || "presets/baseline.json";
 const preset = JSON.parse(open(presetPath));
 const baseUrl = __ENV.BASE_URL || preset.baseUrl || "http://host.docker.internal:8080";
 const reservationPath = preset.path || "/api/reservations";
-const reservationResponseCallback = http.expectedStatuses(200, 409);
+const expectedStatuses = preset.expectedStatuses || [200, 409];
+const reservationResponseCallback = http.expectedStatuses(...expectedStatuses);
 
+const reservedResponses = new Counter("reservation_reserved");
+const soldOutResponses = new Counter("reservation_sold_out");
+const lockTimeoutResponses = new Counter("reservation_lock_timeout");
+const unexpectedResponses = new Counter("reservation_unexpected_status");
 const reservationCount = new Gauge("concert_reservation_count");
 const remainingSeats = new Gauge("concert_remaining_seats");
 const seatCountInconsistency = new Gauge("concert_seat_count_inconsistency");
@@ -59,6 +64,7 @@ export const options = {
     [scenario]: buildScenario(),
   },
   thresholds: preset.thresholds || {},
+  summaryTrendStats: ["avg", "min", "med", "max", "p(90)", "p(95)", "p(99)"],
 };
 
 export function setup() {
@@ -140,8 +146,18 @@ export default function () {
   );
 
   check(res, {
-    "status 200 or 409": (r) => r.status === 200 || r.status === 409,
+    "status is expected": (r) => expectedStatuses.includes(r.status),
   });
+
+  if (res.status === 200) {
+    reservedResponses.add(1);
+  } else if (res.status === 409) {
+    soldOutResponses.add(1);
+  } else if (res.status === 408) {
+    lockTimeoutResponses.add(1);
+  } else {
+    unexpectedResponses.add(1);
+  }
 
   if (preset.sleepSeconds > 0) {
     sleep(preset.sleepSeconds);
