@@ -14,6 +14,13 @@
 
 ## SQL
 
+## PostgreSQL Lock Evidence
+
+- `scripts/sql/pg-lock-wait-snapshot.sql`: stores wait event, query age, transaction age, blocking PID, and query text from `pg_stat_activity`.
+- `scripts/sql/pg-lock-summary.sql`: summarizes `pg_locks` by lock type, relation, mode, and granted state.
+
+Capture these files as separate evidence during Pessimistic Lock `pool-10` and `pool-50` runs.
+
 ```sql
 SELECT pid, locktype, relation::regclass, mode, granted
 FROM pg_locks

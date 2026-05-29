@@ -98,19 +98,19 @@ Pessimistic pool 실험 중 `pool-10`, `pool-50`에서 `pg_locks`, `pg_stat_acti
 ```bash
 mkdir -p docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql
 docker compose exec -T postgres psql -U user -d reservation \
-  -c "SELECT pid, locktype, relation::regclass, mode, granted FROM pg_locks WHERE NOT granted;" \
-  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-locks.txt
+  < scripts/sql/pg-lock-wait-snapshot.sql \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-lock-wait-snapshot.txt
 docker compose exec -T postgres psql -U user -d reservation \
-  -c "SELECT pid, state, wait_event_type, wait_event, query FROM pg_stat_activity WHERE wait_event IS NOT NULL;" \
-  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-stat-activity.txt
+  < scripts/sql/pg-lock-summary.sql \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-10/sql/pg-lock-summary.txt
 
 mkdir -p docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql
 docker compose exec -T postgres psql -U user -d reservation \
-  -c "SELECT pid, locktype, relation::regclass, mode, granted FROM pg_locks WHERE NOT granted;" \
-  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-locks.txt
+  < scripts/sql/pg-lock-wait-snapshot.sql \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-lock-wait-snapshot.txt
 docker compose exec -T postgres psql -U user -d reservation \
-  -c "SELECT pid, state, wait_event_type, wait_event, query FROM pg_stat_activity WHERE wait_event IS NOT NULL;" \
-  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-stat-activity.txt
+  < scripts/sql/pg-lock-summary.sql \
+  > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-lock-summary.txt
 ```
 
 ## Related Guides
