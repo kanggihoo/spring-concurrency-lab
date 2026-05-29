@@ -113,6 +113,17 @@ docker compose exec -T postgres psql -U user -d reservation \
   > docs/evidence/04-db-operational-limits/pessimistic-pool/pool-50/sql/pg-lock-summary.txt
 ```
 
+## Hikari Prometheus Summary
+
+Save HikariCP aggregate evidence from each k6 run-window JSON.
+
+```powershell
+$runWindow = (Get-ChildItem docs/evidence/04-db-operational-limits/atomic-pool/pool-10/grafana/run-window-*.json | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName
+npm run prometheus:hikari-summary -- --run-window "$runWindow" --out docs/evidence/04-db-operational-limits/atomic-pool/pool-10/prometheus/hikari-summary.json
+```
+
+Use the saved value as the source of truth for the Hikari table in `report.md`; Grafana screenshots remain visual evidence.
+
 ## Related Guides
 
 - [PostgreSQL Monitoring](../../guides/postgres-monitoring.md)
