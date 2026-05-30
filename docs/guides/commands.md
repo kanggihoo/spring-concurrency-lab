@@ -149,6 +149,22 @@ make phase4-sql-consistency EXPERIMENT=pessimistic-pool CONDITION=pool-10
 make phase4-sql-consistency EXPERIMENT=pessimistic-timeout CONDITION=timeout-500
 ```
 
+## Reservation Strategy Endpoint
+
+예약 API는 Phase 2-4의 기존 경로를 유지하면서 strategy 이름으로 실행할 수 있다.
+
+| Strategy | Endpoint |
+|---|---|
+| No Lock baseline | `POST /api/reservations` |
+| No Lock baseline | `POST /api/reservations/no-lock` |
+| Pessimistic Lock | `POST /api/reservations/pessimistic` |
+| Optimistic Lock + Retry | `POST /api/reservations/optimistic` |
+| Atomic Conditional Update | `POST /api/reservations/atomic` |
+
+알 수 없는 strategy는 `404 {"status":"unknown_strategy"}`를 반환한다.
+
+k6 preset은 기존 path를 그대로 사용할 수 있고, 이후 Phase는 새 strategy path를 추가하는 방식으로 확장한다.
+
 If Pillow is installed in a different Python, override the interpreter:
 
 ```bash

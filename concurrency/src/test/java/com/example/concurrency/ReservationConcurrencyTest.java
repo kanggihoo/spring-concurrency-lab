@@ -3,7 +3,8 @@ package com.example.concurrency;
 import com.example.concurrency.domain.Concert;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
-import com.example.concurrency.service.ReservationService;
+import com.example.concurrency.service.ReservationCommand;
+import com.example.concurrency.service.ReservationUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +36,7 @@ class ReservationConcurrencyTest {
             .withPassword("password");
 
     @Autowired
-    private ReservationService reservationService;
+    private ReservationUseCase reservationUseCase;
 
     @Autowired
     private ConcertRepository concertRepository;
@@ -67,7 +68,7 @@ class ReservationConcurrencyTest {
             long userId = i + 1;
             executor.submit(() -> {
                 try {
-                    reservationService.reserve(1L, userId);
+                    reservationUseCase.reserve("no-lock", new ReservationCommand(1L, userId));
                 } catch (Exception ignored) {
                 } finally {
                     latch.countDown();

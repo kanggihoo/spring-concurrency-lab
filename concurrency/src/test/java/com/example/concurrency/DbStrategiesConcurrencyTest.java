@@ -3,7 +3,8 @@ package com.example.concurrency;
 import com.example.concurrency.domain.Concert;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
-import com.example.concurrency.service.ReservationService;
+import com.example.concurrency.service.ReservationCommand;
+import com.example.concurrency.service.ReservationUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -37,7 +38,7 @@ class DbStrategiesConcurrencyTest {
             .withPassword("password");
 
     @Autowired
-    private ReservationService reservationService;
+    private ReservationUseCase reservationUseCase;
 
     @Autowired
     private ConcertRepository concertRepository;
@@ -58,7 +59,7 @@ class DbStrategiesConcurrencyTest {
     @DisplayName("Pessimistic Lock: concurrent reservations preserve counted-seat invariant")
     void pessimisticLock_concurrentReservations_preserveInvariant() throws InterruptedException {
         StrategyResult result = runConcurrentReservations(userId ->
-                reservationService.reserveWithPessimisticLock(CONCERT_ID, userId));
+                reservationUseCase.reserve("pessimistic", new ReservationCommand(CONCERT_ID, userId)));
 
         Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
         long reservationCount = reservationRepository.countByConcertId(CONCERT_ID);
@@ -77,7 +78,7 @@ class DbStrategiesConcurrencyTest {
         concert.resetRemainingSeats(0);
         concertRepository.saveAndFlush(concert);
 
-        assertThatThrownBy(() -> reservationService.reserveWithPessimisticLock(CONCERT_ID, 1L))
+        assertThatThrownBy(() -> reservationUseCase.reserve("pessimistic", new ReservationCommand(CONCERT_ID, 1L)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Sold out");
 
@@ -88,7 +89,7 @@ class DbStrategiesConcurrencyTest {
     @DisplayName("Optimistic Lock: concurrent reservations preserve counted-seat invariant")
     void optimisticLock_concurrentReservations_preserveInvariant() throws InterruptedException {
         StrategyResult result = runConcurrentReservations(userId ->
-                reservationService.reserveWithOptimisticLock(CONCERT_ID, userId));
+                reservationUseCase.reserve("optimistic", new ReservationCommand(CONCERT_ID, userId)));
 
         Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
         long reservationCount = reservationRepository.countByConcertId(CONCERT_ID);
@@ -106,7 +107,7 @@ class DbStrategiesConcurrencyTest {
         concert.resetRemainingSeats(0);
         concertRepository.saveAndFlush(concert);
 
-        assertThatThrownBy(() -> reservationService.reserveWithOptimisticLock(CONCERT_ID, 1L))
+        assertThatThrownBy(() -> reservationUseCase.reserve("optimistic", new ReservationCommand(CONCERT_ID, 1L)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Sold out");
 
@@ -117,7 +118,7 @@ class DbStrategiesConcurrencyTest {
     @DisplayName("Atomic Conditional Update: concurrent reservations preserve counted-seat invariant")
     void atomicUpdate_concurrentReservations_preserveInvariant() throws InterruptedException {
         StrategyResult result = runConcurrentReservations(userId ->
-                reservationService.reserveWithAtomicUpdate(CONCERT_ID, userId));
+                reservationUseCase.reserve("atomic", new ReservationCommand(CONCERT_ID, userId)));
 
         Concert concert = concertRepository.findById(CONCERT_ID).orElseThrow();
         long reservationCount = reservationRepository.countByConcertId(CONCERT_ID);
@@ -136,14 +137,14 @@ class DbStrategiesConcurrencyTest {
         concert.resetRemainingSeats(0);
         concertRepository.saveAndFlush(concert);
 
-        assertThatThrownBy(() -> reservationService.reserveWithAtomicUpdate(CONCERT_ID, 1L))
+        assertThatThrownBy(() -> reservationUseCase.reserve("atomic", new ReservationCommand(CONCERT_ID, 1L)))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessageContaining("Sold out");
 
         assertThat(reservationRepository.countByConcertId(CONCERT_ID)).isZero();
     }
 
-    private StrategyResult runConcurrentReservations(ReservationCommand command) throws InterruptedException {
+    private StrategyResult runConcurrentReservations(ReservationAction command) throws InterruptedException {
         int threadCount = 100;
         ExecutorService executor = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -170,7 +171,7 @@ class DbStrategiesConcurrencyTest {
     }
 
     @FunctionalInterface
-    private interface ReservationCommand {
+    private interface ReservationAction {
         void reserve(long userId);
     }
 
