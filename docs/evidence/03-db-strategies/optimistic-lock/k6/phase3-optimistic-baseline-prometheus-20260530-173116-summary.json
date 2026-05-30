@@ -1,0 +1,209 @@
+{
+    "metrics": {
+        "iterations": {
+            "count": 15623,
+            "rate": 1541.199110997051
+        },
+        "checks": {
+            "passes": 15625,
+            "fails": 0,
+            "value": 1
+        },
+        "reservation_reserved": {
+            "count": 100,
+            "rate": 9.864937022319983
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_sending": {
+            "min": 0.002209,
+            "med": 0.0125,
+            "max": 6.451662,
+            "p(90)": 0.034125,
+            "p(95)": 0.05535839999999995,
+            "p(99)": 0.23534791999999952,
+            "avg": 0.02746688236800007
+        },
+        "data_sent": {
+            "count": 2936101,
+            "rate": 289644.51456170727
+        },
+        "http_req_connecting": {
+            "avg": 0.04292839833600001,
+            "min": 0,
+            "med": 0,
+            "max": 10.008909,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 1.7059681599999998
+        },
+        "http_reqs": {
+            "count": 15625,
+            "rate": 1541.3964097374974
+        },
+        "reservation_optimistic_lock_exhausted": {
+            "count": 93,
+            "rate": 9.174391430757584
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_blocked": {
+            "p(90)": 0.007916600000000001,
+            "p(95)": 0.012208,
+            "p(99)": 1.8222401599999989,
+            "avg": 0.05080045273600023,
+            "min": 0.000666,
+            "med": 0.00325,
+            "max": 10.047201
+        },
+        "concert_overbooked": {
+            "min": 0,
+            "max": 0,
+            "value": 0
+        },
+        "reservation_unexpected_status": {
+            "count": 0,
+            "rate": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(99)": 417.56104987999987,
+            "avg": 63.754527352320046,
+            "min": 1.079004,
+            "med": 46.304284,
+            "max": 1392.413697,
+            "p(90)": 134.5858052,
+            "p(95)": 192.14546679999992
+        },
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_duration": {
+            "p(99)": 417.56104987999987,
+            "avg": 63.754527352320046,
+            "min": 1.079004,
+            "med": 46.304284,
+            "max": 1392.413697,
+            "p(90)": 134.5858052,
+            "p(95)": 192.14546679999992,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0
+        },
+        "data_received": {
+            "count": 2284856,
+            "rate": 225399.60545069948
+        },
+        "vus": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_receiving": {
+            "max": 250.862239,
+            "p(90)": 0.22177600000000008,
+            "p(95)": 0.6394279999999999,
+            "p(99)": 2.257324279999998,
+            "avg": 0.20185299072000004,
+            "min": 0.0055,
+            "med": 0.041917
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 15625,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_waiting": {
+            "avg": 63.52520747923216,
+            "min": 1.036628,
+            "med": 46.132658,
+            "max": 1392.293279,
+            "p(90)": 134.49790080000002,
+            "p(95)": 191.84752339999997,
+            "p(99)": 414.0209357999996
+        },
+        "reservation_sold_out": {
+            "count": 15430,
+            "rate": 1522.1597825439735
+        },
+        "iteration_duration": {
+            "med": 46.564644,
+            "max": 1392.580156,
+            "p(90)": 135.24960660000002,
+            "p(95)": 192.856304,
+            "p(99)": 419.3544358399999,
+            "avg": 64.09686814229003,
+            "min": 1.132045
+        }
+    },
+    "root_group": {
+        "checks": {
+            "status is expected": {
+                "name": "status is expected",
+                "path": "::status is expected",
+                "id": "7900b1724c781e002b4ea556d2517ccc",
+                "passes": 15623,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "reset OK": {
+                            "name": "reset OK",
+                            "path": "::setup::reset OK",
+                            "id": "319d421847c56611759a656efdee0864",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            },
+            "teardown": {
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {},
+                "checks": {
+                        "consistency snapshot OK": {
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "consistency snapshot OK",
+                            "path": "::teardown::consistency snapshot OK",
+                            "id": "8e00c90823ee0a139e6a5ec935b6019b"
+                        }
+                    }
+            }
+        }
+    }
+}

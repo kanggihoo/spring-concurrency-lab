@@ -1,0 +1,6 @@
+ locktype | relation |      mode       | granted | count 
+----------+----------+-----------------+---------+-------
+ relation | concert  | AccessShareLock | t       |     8
+ relation | pg_locks | AccessShareLock | t       |     1
+(2 rows)
+

@@ -21,7 +21,7 @@ PostgreSQL 기반 동시성 제어 전략을 구현하고 같은 조건에서 �
 
 - 각 전략별 정합성 테스트 통과
 - 동일 k6 조건에서 방식별 결과 저장
-- retry count, sold-out count, lock wait 등 필요한 지표 기록
+- sold-out count, optimistic lock exhausted count, lock wait 등 필요한 지표 기록
 - `docs/phases/03-db-strategies/report.md`에 방식별 선택 기준 기록
 
 ## Phase Docs

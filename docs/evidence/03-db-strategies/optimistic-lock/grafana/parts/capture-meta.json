@@ -1,6 +1,6 @@
 {
-  "url": "http://localhost:3000/d/concurrency-lab-overview/concurrency-lab-overview?orgId=1&from=1779840852000&to=1779840893000&timezone=browser&var-phase=phase-03&var-scenario=optimistic&var-preset=baseline&var-pool=default&var-uri=%24__all&var-table=%24__all&refresh=10s",
-  "runWindow": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\03-db-strategies\\optimistic-lock\\grafana\\run-window-phase3-optimistic-baseline-prometheus-20260527-091421.json",
+  "url": "http://localhost:3000/d/concurrency-lab-overview/concurrency-lab-overview?orgId=1&from=1780129866000&to=1780129907000&timezone=browser&var-phase=phase-03&var-scenario=optimistic&var-preset=baseline&var-pool=default&var-uri=%24__all&var-table=%24__all&refresh=10s",
+  "runWindow": "/Users/kkh/Desktop/spring-concurrency-lab/docs/evidence/03-db-strategies/optimistic-lock/grafana/run-window-phase3-optimistic-baseline-prometheus-20260530-173116.json",
   "selector": "[data-testid=\"data-testid DashboardEditPaneSplitter body container\"]",
   "dashboard": "overview",
   "variables": {
@@ -19,7 +19,7 @@
     "scrollTop": 0,
     "scrollHeight": 4759,
     "clientHeight": 813,
-    "clientWidth": 1226,
+    "clientWidth": 1225,
     "rect": {
       "x": 300,
       "y": 152,
@@ -41,7 +41,7 @@
       "actualOffset": 0,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
@@ -55,7 +55,7 @@
       "actualOffset": 813,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
@@ -69,7 +69,7 @@
       "actualOffset": 1626,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
@@ -83,7 +83,7 @@
       "actualOffset": 2439,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
@@ -97,7 +97,7 @@
       "actualOffset": 3252,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
@@ -111,7 +111,7 @@
       "actualOffset": 3946,
       "scrollHeight": 4759,
       "clientHeight": 813,
-      "clientWidth": 1226,
+      "clientWidth": 1225,
       "rect": {
         "x": 300,
         "y": 152,
