@@ -11,13 +11,14 @@ const dashboards = {
     slug: 'concurrency-lab-overview',
   },
   phase2: {
-    uid: 'phase-02-no-lock-baseline',
-    slug: 'phase-2-no-lock-baseline',
+    uid: 'concurrency-lab-overview',
+    slug: 'concurrency-lab-overview',
+    aliasFor: 'overview',
   },
 };
 
 const defaults = {
-  dashboard: 'phase2',
+  dashboard: 'overview',
   baseUrl: 'http://localhost:3000',
   selector: '[data-testid="data-testid DashboardEditPaneSplitter body container"]',
   partsDir: 'docs/evidence/02-no-lock-baseline/grafana/parts',
@@ -117,7 +118,7 @@ function printHelp() {
   console.log(`Usage: node scripts/capture-grafana-dashboard.js [options]
 
 Options:
-  --dashboard <overview|phase2>  Dashboard to capture
+  --dashboard <overview|phase2>  Dashboard to capture, phase2 is an overview compatibility alias
   --base-url <url>               Grafana base URL, default http://localhost:3000
   --selector <selector>          Dashboard scroll container selector
   --parts-dir <path>             Directory for screenshot parts
@@ -149,10 +150,7 @@ async function pathExists(path) {
 }
 
 function defaultRunWindowDir(args) {
-  if (args.dashboard === 'phase2') {
-    return resolve(root, 'docs/evidence/02-no-lock-baseline/grafana');
-  }
-  return resolve(root, 'docs/evidence');
+  return dirname(resolvePartsDir(args.partsDir));
 }
 
 async function resolveLatestRunWindow(args) {
@@ -377,6 +375,7 @@ async function main() {
       runWindow: args.runWindowPath,
       selector: args.selector,
       dashboard: args.dashboard,
+      dashboardResolved: dashboards[args.dashboard].aliasFor || args.dashboard,
       variables: {
         phase: args.phase,
         scenario: args.scenario,

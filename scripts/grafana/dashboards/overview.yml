@@ -1,0 +1,48 @@
+uid: concurrency-lab-overview
+slug: concurrency-lab-overview
+output: concurrency-lab-overview.json
+title: Concurrency Lab Overview
+tags:
+  - concurrency-lab
+  - reservation
+  - observability
+
+variables:
+  phase:
+    label: Phase
+    query: 'label_values(k6_http_reqs_total, phase)'
+    default: phase-02
+  scenario:
+    label: Scenario
+    query: 'label_values(k6_http_reqs_total{phase="$phase"}, scenario)'
+    default: no-lock
+  preset:
+    label: Preset
+    query: 'label_values(k6_http_reqs_total{phase="$phase", scenario="$scenario"}, preset)'
+    default: baseline
+  pool:
+    label: Pool
+    query: 'label_values(k6_http_reqs_total{phase="$phase", scenario="$scenario", preset="$preset"}, pool)'
+    default: default
+  uri:
+    label: URI
+    query: 'label_values(http_server_requests_seconds_count, uri)'
+    default: '$__all'
+    includeAll: true
+    multi: true
+  table:
+    label: Table
+    query: 'label_values(pg_stat_user_tables_seq_scan, relname)'
+    default: '$__all'
+    includeAll: true
+    multi: true
+
+rows:
+  - run-summary
+  - k6-load
+  - spring-api
+  - spring-runtime
+  - hikari-pool
+  - postgres-activity
+  - table-access
+  - reservation-consistency

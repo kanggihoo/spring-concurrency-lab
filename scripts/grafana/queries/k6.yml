@@ -1,0 +1,35 @@
+k6.http.p95:
+  expr: 'max(k6_http_req_duration_p95{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+k6.http.p99:
+  expr: 'max(k6_http_req_duration_p99{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+k6.http.rps:
+  expr: 'sum(rate(k6_http_reqs_total{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}[$__rate_interval]))'
+
+k6.http.error-rate:
+  expr: 'avg(k6_http_req_failed_rate{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}) * 100'
+
+k6.http.success-rps:
+  expr: 'sum(rate(k6_http_reqs_total{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool", expected_response="true"}[$__rate_interval]))'
+
+k6.http.error-rps:
+  expr: 'sum(rate(k6_http_reqs_total{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool", expected_response="false"}[$__rate_interval]))'
+
+k6.vus:
+  expr: 'sum(k6_vus{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+k6.iteration.p95:
+  expr: 'max(k6_iteration_duration_p95{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+k6.checks.success-percent:
+  expr: 'avg(k6_checks_rate{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}) * 100'
+
+k6.checks.by-name:
+  expr: 'avg by (check) (k6_checks_rate{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}) * 100'
+
+k6.dropped-iterations.total:
+  expr: 'sum(increase(k6_dropped_iterations_total{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}[$__range]))'
+
+k6.dropped-iterations.rate:
+  expr: 'sum(rate(k6_dropped_iterations_total{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"}[$__rate_interval]))'

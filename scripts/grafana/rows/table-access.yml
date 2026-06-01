@@ -1,0 +1,21 @@
+id: table-access
+title: Table Access
+panels:
+  - type: timeseries
+    title: Seq Scan by Table
+    query: postgres.table.seq-scan-by-table
+    legend: '{{relname}}'
+    w: 24
+  - type: timeseries
+    title: Index Scan by Table
+    query: postgres.table.idx-scan-by-table
+    legend: '{{relname}}'
+    w: 24
+  - type: timeseries
+    title: Seq Tuples Read Rate by Table
+    query: postgres.table.seq-tuples-read-rate-by-table
+    legend: '{{relname}}'
+  - type: timeseries
+    title: Index Tuples Fetch Rate by Table
+    query: postgres.table.idx-tuples-fetch-rate-by-table
+    legend: '{{relname}}'

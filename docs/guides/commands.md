@@ -40,7 +40,7 @@ make env-check
 | `CONDITION` | `baseline` | evidence run id prefix |
 | `TAIL` | `120` | k6 tail 출력 줄 수 |
 | `PYTHON` | `python.exe` | image stitching에 사용할 Python 실행 파일 |
-| `DASHBOARD` | `phase2` | Grafana dashboard key |
+| `DASHBOARD` | `overview` | Grafana dashboard key |
 | `RUN_WINDOW` | `auto` | Grafana 캡처 시간 구간 |
 
 ## Environment
@@ -93,13 +93,29 @@ make k6-evidence PHASE=02-no-lock-baseline PRESET=baseline CONDITION=pool-defaul
 
 ## Grafana
 
-Dashboard JSON을 생성한다.
+Grafana dashboard JSON은 직접 편집하지 않는다. 다음 YAML 파일이 source of truth다.
+
+```text
+scripts/grafana/dashboards/overview.yml
+scripts/grafana/rows/*.yml
+scripts/grafana/queries/*.yml
+```
+
+Dashboard 생성:
 
 ```bash
 make grafana-generate
 ```
 
-최근 k6 run window 기준으로 Phase 2 dashboard를 캡처한다.
+생성 결과:
+
+```text
+grafana/dashboards/concurrency-lab-overview.json
+```
+
+phase별 metric 추가는 `queries/*.yml`에 PromQL alias를 추가하고, `rows/*.yml`에 panel을 추가한 뒤 `overview.yml`의 `rows` 목록에 row id를 추가한다.
+
+최근 k6 run window 기준으로 overview dashboard를 캡처한다.
 
 ```bash
 make grafana-capture

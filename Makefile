@@ -14,7 +14,7 @@ PORT ?= 8080
 CONDITION ?= baseline
 TAIL ?= 120
 PYTHON ?= python.exe
-DASHBOARD ?= phase2
+DASHBOARD ?= overview
 RUN_WINDOW ?= auto
 STRATEGY ?= pessimistic-lock
 TABLE ?=
@@ -46,7 +46,7 @@ help:
 	@echo "      k6 evidence 실행 후 Grafana 캡처와 이미지 stitch를 수행한다."
 	@echo "  make grafana-generate"
 	@echo "      Grafana dashboard JSON을 생성한다."
-	@echo "  make grafana-capture DASHBOARD=phase2 RUN_WINDOW=auto TABLE=concert"
+	@echo "  make grafana-capture DASHBOARD=overview RUN_WINDOW=auto TABLE=concert"
 	@echo "      Grafana dashboard를 viewport part 이미지로 캡처한다."
 	@echo "  make phase3-grafana-capture STRATEGY=pessimistic-lock"
 	@echo "      Capture a Phase 3 strategy overview dashboard using its latest run-window."

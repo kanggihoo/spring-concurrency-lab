@@ -1,0 +1,16 @@
+id: spring-api
+title: Spring API
+panels:
+  - type: timeseries
+    title: HTTP Request Rate by URI
+    query: spring.http.request-rate-by-uri
+    legend: '{{uri}}'
+    w: 24
+  - type: timeseries
+    title: HTTP p95 by URI
+    query: spring.http.p95-by-uri
+    legend: '{{uri}}'
+  - type: timeseries
+    title: HTTP Errors by Status
+    query: spring.http.errors-by-status
+    legend: '{{status}}'
