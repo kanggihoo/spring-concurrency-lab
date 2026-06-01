@@ -1,4 +1,8 @@
+ifeq ($(OS),Windows_NT)
 SHELL := C:/PROGRA~1/Git/bin/bash.exe
+else
+SHELL := /bin/bash
+endif
 .DEFAULT_GOAL := help
 
 PHASE ?= 02-no-lock-baseline
