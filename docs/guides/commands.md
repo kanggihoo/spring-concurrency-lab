@@ -30,7 +30,9 @@ make env-check
 | `PHASE` | `02-no-lock-baseline` | 문서/evidence phase 디렉토리 |
 | `GRAFANA_PHASE` | `phase-02` | Grafana dashboard phase variable |
 | `SCENARIO` | `no-lock` | 시나리오 label |
-| `PRESET` | `baseline` | `k6/presets/<preset>.json` 이름 |
+| `PRESET` | `baseline` | 기존 호환용 preset 값. `K6_PRESET`, `GRAFANA_PRESET` 기본값으로 사용 |
+| `K6_PRESET` | `$(PRESET)` | `k6/presets/<K6_PRESET>.json` 파일명 |
+| `GRAFANA_PRESET` | `$(PRESET)` | Grafana `preset` variable과 Prometheus label |
 | `MODE` | `prometheus` | k6 실행 모드. `prometheus` 또는 `local` |
 | `POOL` | `default` | pool label |
 | `POOL_SIZE` | `10` | Spring Boot 서버의 HikariCP maximum pool size |
@@ -39,9 +41,12 @@ make env-check
 | `PORT` | `8080` | Spring Boot port |
 | `CONDITION` | `baseline` | evidence run id prefix |
 | `TAIL` | `120` | k6 tail 출력 줄 수 |
+| `PARTS_DIR` | `docs/evidence/<PHASE>/grafana/parts` | Grafana part screenshot output directory |
 | `PYTHON` | `python.exe` | image stitching에 사용할 Python 실행 파일 |
 | `DASHBOARD` | `overview` | Grafana dashboard key |
 | `RUN_WINDOW` | `auto` | Grafana 캡처 시간 구간 |
+| `SQL_CONDITION` | `$(CONDITION)` | SQL evidence 조건 이름 |
+| `SQL_OUTPUT` | `docs/evidence/<PHASE>/<EXPERIMENT>/<SQL_CONDITION>/sql/consistency.txt` | SQL consistency output file |
 
 ## Environment
 
@@ -72,16 +77,18 @@ make k6-run
 다른 preset을 실행한다.
 
 ```bash
-make k6-run PRESET=spike MODE=prometheus
-make k6-run PRESET=ramp-up MODE=local
-make k6-run PRESET=sustained MODE=prometheus
+make k6-run K6_PRESET=spike MODE=prometheus
+make k6-run K6_PRESET=ramp-up MODE=local
+make k6-run K6_PRESET=sustained MODE=prometheus
 ```
 
 Evidence run id에 조건 이름을 포함해 실행한다.
 
 ```bash
-make k6-evidence PHASE=02-no-lock-baseline PRESET=baseline CONDITION=pool-default-baseline
+make k6-evidence PHASE=02-no-lock-baseline K6_PRESET=baseline CONDITION=pool-default-baseline
 ```
+
+`PRESET=baseline`은 기존 명령 호환을 위해 유지된다. 새 문서와 새 phase 명령은 `K6_PRESET`을 사용한다.
 
 기본 결과 위치:
 
@@ -121,48 +128,31 @@ phase별 metric 추가는 `queries/*.yml`에 PromQL alias를 추가하고, `rows
 make grafana-capture
 ```
 
+```bash
+make grafana-capture \
+  PHASE=03-db-strategies/pessimistic-lock \
+  GRAFANA_PHASE=phase-03 \
+  SCENARIO=pessimistic \
+  GRAFANA_PRESET=baseline
+```
+
+`grafana-capture`는 기본적으로 `docs/evidence/<PHASE>/grafana/parts`에 part screenshot을 저장하고, `RUN_WINDOW=auto`일 때 같은 Grafana 디렉터리에서 최신 run-window JSON을 찾는다.
+
 Grafana table variable을 지정한다.
 
 ```bash
 make grafana-capture TABLE=concert
 ```
 
-Phase 3 strategy overview dashboard capture:
+## Compatibility Targets
+
+기존 phase 문서 재현성을 위해 아래 target은 유지한다. 신규 phase에서는 이 패턴으로 target을 추가하지 않고 공통 target과 변수 조합을 사용한다.
 
 ```bash
 make phase3-grafana-capture STRATEGY=pessimistic-lock
-make phase3-grafana-capture STRATEGY=optimistic-lock
-make phase3-grafana-capture STRATEGY=atomic-update
-```
-
-Phase 3 strategy dashboard stitching:
-
-```bash
 make phase3-grafana-stitch STRATEGY=pessimistic-lock
-make phase3-grafana-stitch STRATEGY=optimistic-lock
-make phase3-grafana-stitch STRATEGY=atomic-update
-```
-
-All Phase 3 strategy captures can be stitched with one command:
-
-```bash
-make phase3-grafana-stitches
-```
-
-Phase 3 SQL consistency evidence:
-
-```bash
 make phase3-sql-consistency STRATEGY=pessimistic-lock
-make phase3-sql-consistency STRATEGY=optimistic-lock
-make phase3-sql-consistency STRATEGY=atomic-update
-```
-
-Phase 4 SQL consistency evidence:
-
-```bash
 make phase4-sql-consistency EXPERIMENT=atomic-pool CONDITION=pool-10
-make phase4-sql-consistency EXPERIMENT=pessimistic-pool CONDITION=pool-10
-make phase4-sql-consistency EXPERIMENT=pessimistic-timeout CONDITION=timeout-500
 ```
 
 ## Reservation Strategy Endpoint
@@ -200,7 +190,7 @@ docs/evidence/02-no-lock-baseline/grafana/parts/
 k6 실행, Grafana 캡처, 이미지 stitch를 한 번에 수행한다.
 
 ```bash
-make evidence-capture PHASE=02-no-lock-baseline PRESET=baseline CONDITION=pool-default-baseline
+make evidence-capture PHASE=02-no-lock-baseline K6_PRESET=baseline GRAFANA_PHASE=phase-02 SCENARIO=no-lock GRAFANA_PRESET=baseline CONDITION=pool-default-baseline
 ```
 
 캡처 후 stitch만 다시 수행한다.

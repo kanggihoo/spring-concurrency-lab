@@ -73,14 +73,14 @@ make help
 | `env-check` | 필수 도구와 실행 환경 확인 | - | - |
 | `db-start` | DB와 관측 도구 실행 | - | `PROFILE` |
 | `server-start` | Spring Boot 서버 실행 | - | `PROFILE`, `PORT`, `POOL_SIZE`, `LOCK_TIMEOUT` |
-| `k6-run` | k6 preset 실행 | - | `PRESET`, `MODE`, `TAIL` |
-| `k6-evidence` | evidence run id를 명시해 k6 실행 | - | `PHASE`, `PRESET`, `MODE`, `CONDITION`, `TAIL` |
-| `evidence-capture` | k6 실행 후 Grafana 캡처와 stitch 수행 | - | `PHASE`, `SCENARIO`, `PRESET`, `POOL`, `CONDITION`, `TABLE`, `OUTPUT` |
+| `k6-run` | k6 preset 실행 | - | `K6_PRESET`, `PRESET`, `MODE`, `TAIL`, `POOL` |
+| `k6-evidence` | evidence run id를 명시해 k6 실행 | - | `PHASE`, `K6_PRESET`, `PRESET`, `MODE`, `CONDITION`, `TAIL`, `POOL` |
+| `evidence-capture` | k6 실행 후 Grafana 캡처와 stitch 수행 | - | `PHASE`, `K6_PRESET`, `GRAFANA_PHASE`, `SCENARIO`, `GRAFANA_PRESET`, `POOL`, `CONDITION`, `TABLE`, `URI`, `OUTPUT` |
 | `grafana-generate` | Grafana dashboard JSON 생성 | - | - |
-| `grafana-capture` | Grafana dashboard viewport part 캡처 | - | `DASHBOARD`, `GRAFANA_PHASE`, `SCENARIO`, `PRESET`, `POOL`, `RUN_WINDOW`, `TABLE`, `URI`, `PARTS_DIR` |
+| `grafana-capture` | Grafana dashboard viewport part 캡처 | - | `DASHBOARD`, `GRAFANA_PHASE`, `SCENARIO`, `GRAFANA_PRESET`, `POOL`, `RUN_WINDOW`, `TABLE`, `URI`, `PARTS_DIR` |
 | `evidence-postprocess` | Grafana 캡처 이미지 stitch | - | `PHASE`, `INPUT`, `OUTPUT` |
 | `grafana-stitch` | `evidence-postprocess` alias | - | `PHASE`, `INPUT`, `OUTPUT` |
-| `sql-consistency` | counted-seat consistency SQL evidence 저장 | `EXPERIMENT`, `CONDITION` | `PHASE` |
+| `sql-consistency` | counted-seat consistency SQL evidence 저장 | `PHASE`, `CONDITION`, `SQL_CONDITION`, `SQL_OUTPUT` | `EXPERIMENT` |
 | `phase4-sql-consistency` | Phase 4 consistency SQL evidence 저장 | `EXPERIMENT`, `CONDITION` | - |
 | `phase-status` | phase 문서와 evidence 상태 확인 | - | `PHASE` |
 | `k6-verify` | k6 예약 응답 기대값 검증 | - | - |
@@ -94,7 +94,9 @@ make help
 | `PHASE` | 문서/evidence phase 디렉토리 | `02-no-lock-baseline` |
 | `GRAFANA_PHASE` | Grafana dashboard phase variable | `phase-02` |
 | `SCENARIO` | k6 또는 실험 시나리오 | `no-lock` |
-| `PRESET` | k6 preset | `baseline` |
+| `PRESET` | 기존 호환용 preset 값. `K6_PRESET`, `GRAFANA_PRESET` 기본값으로 사용 | `baseline` |
+| `K6_PRESET` | k6 preset JSON 파일명 | `$(PRESET)` |
+| `GRAFANA_PRESET` | Grafana dashboard preset variable | `$(PRESET)` |
 | `MODE` | k6 실행 모드 | `prometheus` |
 | `POOL` | connection pool preset label | `default` |
 | `POOL_SIZE` | Spring Boot HikariCP maximum pool size | `10` |
@@ -105,6 +107,9 @@ make help
 | `TABLE` | Grafana table variable | empty |
 | `DASHBOARD` | dashboard 이름 | `phase2` |
 | `RUN_WINDOW` | Grafana run-window JSON | `auto` |
+| `PARTS_DIR` | Grafana part screenshot output directory | `docs/evidence/<PHASE>/grafana/parts` |
+| `SQL_CONDITION` | SQL evidence 조건 이름 | `$(CONDITION)` |
+| `SQL_OUTPUT` | SQL consistency output file | `docs/evidence/<PHASE>/<EXPERIMENT>/<SQL_CONDITION>/sql/consistency.txt` |
 | `OUTPUT` | 후처리 출력 경로 | empty |
 | `INPUT` | 후처리 입력 디렉토리 | empty |
 | `TAIL` | k6 로그 tail 줄 수 | `120` |
@@ -121,6 +126,8 @@ make help
 3. 반복 실행 문서는 `docs/guides/commands.md`에서 `make` 기준으로 안내한다.
 4. 내부 구현 파일 매핑은 필요할 때 `docs/guides/commands.md`의 보조 섹션에만 짧게 둔다.
 5. 새 phase에서 스크립트가 늘어나면 `scripts/server/`, `scripts/load/`, `scripts/observability/`, `scripts/evidence/` 같은 기능별 하위 디렉토리를 적용한다.
+
+신규 phase에서는 `phase5-*`, `phase6-*` 형식의 Make target을 추가하지 않는다. 공통 target과 명시적 변수 조합으로 실행하고, 이미 공개된 phase 전용 target은 compatibility wrapper로만 유지한다.
 
 ## 금지 규칙
 
