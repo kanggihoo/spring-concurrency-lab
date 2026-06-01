@@ -10,6 +10,19 @@ make k6-run PRESET=baseline MODE=prometheus
 
 `k6/run.sh`는 `k6/presets/<preset>.json`을 읽고 `k6/reservation-test.js`를 실행한다.
 
+## Script Layout
+
+`k6/reservation-test.js`는 k6 lifecycle entrypoint이다. 실제 책임은 `k6/lib/` 아래 모듈로 나뉜다.
+
+| File | Responsibility |
+|---|---|
+| `k6/lib/config.js` | preset JSON과 환경변수를 읽어 실행 config를 만든다. |
+| `k6/lib/scenarios.js` | k6 executor와 `options.scenarios`를 만든다. |
+| `k6/lib/metrics.js` | Reservation custom Counter/Gauge metric을 선언한다. |
+| `k6/lib/response-classifier.js` | HTTP 응답을 reserved, sold out, timeout, unexpected로 분류한다. |
+| `k6/lib/consistency.js` | setup reset과 teardown consistency snapshot metric을 처리한다. |
+| `k6/lib/reservation-scenario.js` | VU 1회 Reservation HTTP 요청을 실행한다. |
+
 ## Preset Types
 
 | Preset | Purpose |
