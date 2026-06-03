@@ -1,0 +1,18 @@
+{
+  "phase": "phase-04",
+  "evidenceDir": "04-db-operational-limits/pessimistic-timeout",
+  "scenario": "pessimistic",
+  "preset": "lock-timeout",
+  "pool": "10",
+  "path": "/api/reservations/pessimistic",
+  "expectedStatuses": [200, 409, 408],
+  "executor": "constant-vus",
+  "vus": 100,
+  "duration": "10s",
+  "thresholds": {
+    "http_req_failed": ["rate<0.01"],
+    "http_req_duration": ["p(95)<1000"]
+  },
+  "resetBeforeRun": true,
+  "captureConsistency": true
+}

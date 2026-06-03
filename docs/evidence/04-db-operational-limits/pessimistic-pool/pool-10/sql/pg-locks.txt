@@ -1,0 +1,11 @@
+  pid  |   locktype    | relation |     mode      | granted
+-------+---------------+----------+---------------+---------
+ 13731 | tuple         | concert  | ExclusiveLock | f
+ 13737 | tuple         | concert  | ExclusiveLock | f
+ 13735 | tuple         | concert  | ExclusiveLock | f
+ 13736 | tuple         | concert  | ExclusiveLock | f
+ 13739 | tuple         | concert  | ExclusiveLock | f
+ 13738 | tuple         | concert  | ExclusiveLock | f
+ 13734 | tuple         | concert  | ExclusiveLock | f
+ 13732 | transactionid |          | ShareLock     | f
+(8 rows)

@@ -13,7 +13,7 @@
 | 1 | Environment & Observability | 측정 가능한 환경이 준비되었는가? |
 | 2 | No Lock Baseline | 락이 없으면 어떤 정합성 문제가 발생하는가? |
 | 3 | DB Concurrency Strategies | DB만으로 어디까지 안전하고 빠르게 처리할 수 있는가? |
-| 4 | DB Limit Experiments | DB 락, 데드락, 커넥션 풀 한계는 어디서 드러나는가? |
+| 4 | DB Operational Limits | DB 기반 Reservation 전략의 pool, lock wait, timeout 한계는 어디서 드러나는가? |
 | 5 | Redis Concurrency Strategies | Redis 기반 전략은 DB 전략 대비 어떤 장단점이 있는가? |
 | 6 | Idempotency | 중복 요청과 클라이언트 재시도를 어떻게 막을 것인가? |
 | 7 | WireMock Payment-Adjacent Experiment | 외부 API 지연이 락과 트랜잭션에 어떤 영향을 주는가? |

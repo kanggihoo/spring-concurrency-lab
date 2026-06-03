@@ -1,0 +1,18 @@
+ pid  | state | wait_event_type | wait_event |    query_age     | xact_age | blocking_pids |                                               query                                                
+------+-------+-----------------+------------+------------------+----------+---------------+----------------------------------------------------------------------------------------------------
+   73 | idle  | Client          | ClientRead | 00:00:03.718694  |          | {}            |                                                                                                   +
+      |       |                 |            |                  |          |               |                         SELECT *,                                                                 +
+      |       |                 |            |                  |          |               |                                 extract(epoch from now() - last_archived_time) AS last_archive_age+
+      |       |                 |            |                  |          |               |                         FROM pg_stat_archiver                                                     +
+      |       |                 |            |                  |          |               |                         
+ 3219 | idle  | Client          | ClientRead | 00:00:00.193974  |          | {}            | COMMIT
+ 3229 | idle  | Client          | ClientRead | -00:00:00.002661 |          | {}            | 
+ 3231 | idle  | Client          | ClientRead | -00:00:00.00354  |          | {}            | 
+ 3232 | idle  | Client          | ClientRead | -00:00:00.003544 |          | {}            | 
+ 3235 | idle  | Client          | ClientRead | -00:00:00.003564 |          | {}            | 
+ 3230 | idle  | Client          | ClientRead | -00:00:00.003568 |          | {}            | 
+ 3234 | idle  | Client          | ClientRead | -00:00:00.003573 |          | {}            | 
+ 3233 | idle  | Client          | ClientRead | -00:00:00.003641 |          | {}            | 
+ 3226 | idle  | Client          | ClientRead | -00:00:00.003659 |          | {}            | 
+(10 rows)
+

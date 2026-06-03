@@ -1,14 +1,16 @@
 package com.example.concurrency.domain;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-/**
- * 콘서트 엔티티 — 잔여 좌석 수를 관리한다.
- * Phase 2에서는 @Version 없이 동시성 제어 없음 (의도적 Race Condition).
- */
 @Entity
 @Table(name = "concert")
 @Getter
@@ -22,22 +24,31 @@ public class Concert {
     @Column(nullable = false)
     private String title;
 
-    // 남은 좌석 수 — 동시 접근 시 정합성이 깨질 수 있음
     @Column(name = "remaining_seats", nullable = false)
     private int remainingSeats;
+
+    @Version
+    @Column(nullable = false)
+    private Long version;
 
     public Concert(String title, int remainingSeats) {
         this.title = title;
         this.remainingSeats = remainingSeats;
+        this.version = 0L;
     }
 
-    // 테스트 초기화용
     public void resetRemainingSeats(int remainingSeats) {
         this.remainingSeats = remainingSeats;
     }
 
-    // 잔여 좌석 수 1 차감 — 락 없이 호출 시 lost update 발생 가능
     public void decreaseRemainingSeats() {
+        this.remainingSeats--;
+    }
+
+    public void reserveOneSeat() {
+        if (this.remainingSeats <= 0) {
+            throw new SoldOutException();
+        }
         this.remainingSeats--;
     }
 }

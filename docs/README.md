@@ -15,13 +15,24 @@
 | `superpowers/specs/` | 설계/spec 문서 |
 | `superpowers/plans/` | AI 작업 계획, vertical slice 계획, 실행 계획 |
 
+## Command Interface
+
+반복 실행의 공식 진입점은 루트 `Makefile`이다.
+
+```bash
+make help
+```
+
+- [Commands Guide](./guides/commands.md)
+- [Project Format Standard](./guides/project-format-standard.md)
+
 ## Roadmap
 
 - [Overview](./roadmap/00-overview.md)
 - [Phase 1. Environment & Observability](./roadmap/01-environment-observability.md)
 - [Phase 2. No Lock Baseline](./roadmap/02-no-lock-baseline.md)
 - [Phase 3. DB Concurrency Strategies](./roadmap/03-db-strategies.md)
-- [Phase 4. DB Limit Experiments](./roadmap/04-db-limits.md)
+- [Phase 4. DB Operational Limits](./roadmap/04-db-operational-limits.md)
 - [Phase 5. Redis Concurrency Strategies](./roadmap/05-redis-strategies.md)
 - [Phase 6. Idempotency](./roadmap/06-idempotency.md)
 - [Phase 7. WireMock Payment-Adjacent Experiment](./roadmap/07-wiremock-payment-adjacent.md)
@@ -38,14 +49,3 @@
 - 실행 절차가 재현 가능하다.
 - k6, SQL, Grafana/Prometheus 등 필요한 evidence 위치가 연결되어 있다.
 - `report.md`에 다음 Phase로 넘길 판단 근거가 있다.
-
-## Legacy Documents
-
-- [기존 전체 로드맵](./00_project-overview.md)
-- [k6 부하 테스트 계획](./01_1_PLAN-k6-load-testing.md)
-- [PostgreSQL 모니터링 계획](./01_2_PLAN-postgresql-monitoring.md)
-- [모니터링 구성 요약](./01_Imp-monitring-setup-summary.md)
-- [환경 설정 계획](./02_1_PLAN-envSetting.md)
-- [구현 요약](./02_1_Imp-summary.md)
-- [Troubleshooting](./02_1_Troubleshooting.md)
-- [K6 부하테스트 시 PostgreSQL 모니터링 가이드](./K6%20부하테스트%20시%20PostgreSQL%20모니터링%20가이드.md)

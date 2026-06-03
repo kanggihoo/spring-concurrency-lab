@@ -1,0 +1,209 @@
+{
+    "metrics": {
+        "http_req_sending": {
+            "avg": 0.01912080977727968,
+            "min": 0.0044,
+            "med": 0.0082,
+            "max": 18.19489,
+            "p(90)": 0.016501,
+            "p(95)": 0.03540215,
+            "p(99)": 0.11409999999999983
+        },
+        "reservation_reserved": {
+            "count": 100,
+            "rate": 9.76887903554856
+        },
+        "http_req_duration{expected_response:true}": {
+            "avg": 69.65593525185574,
+            "min": 7.280176,
+            "med": 60.7787765,
+            "max": 1354.528761,
+            "p(90)": 98.94428930000001,
+            "p(95)": 115.39214,
+            "p(99)": 275.39442655999954
+        },
+        "http_req_receiving": {
+            "med": 0.8056025,
+            "max": 37.628262,
+            "p(90)": 10.230319700000003,
+            "p(95)": 13.957358849999999,
+            "p(99)": 22.500912919999973,
+            "avg": 3.519585593080264,
+            "min": 0.0114
+        },
+        "http_reqs": {
+            "count": 14278,
+            "rate": 1394.8005486956233
+        },
+        "data_received": {
+            "count": 2086613,
+            "rate": 203838.69991003087
+        },
+        "http_req_duration": {
+            "avg": 69.65593525185574,
+            "min": 7.280176,
+            "med": 60.7787765,
+            "max": 1354.528761,
+            "p(90)": 98.94428930000001,
+            "p(95)": 115.39214,
+            "p(99)": 275.39442655999954,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "reservation_lock_timeout": {
+            "rate": 0,
+            "count": 0
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 14.495402569999607,
+            "avg": 0.3324689258299482,
+            "min": 0,
+            "med": 0,
+            "max": 64.228052
+        },
+        "vus": {
+            "max": 100,
+            "value": 100,
+            "min": 100
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "data_sent": {
+            "count": 2625852,
+            "rate": 256516.30553253257
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "reservation_sold_out": {
+            "rate": 1384.8362920793638,
+            "count": 14176
+        },
+        "http_req_tls_handshaking": {
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0,
+            "min": 0
+        },
+        "http_req_waiting": {
+            "p(99)": 274.8044649399995,
+            "avg": 66.11722884899854,
+            "min": 7.105664,
+            "med": 57.0801345,
+            "max": 1354.130336,
+            "p(90)": 94.193413,
+            "p(95)": 108.66011949999995
+        },
+        "iteration_duration": {
+            "med": 60.9911665,
+            "max": 1383.885359,
+            "p(90)": 99.34391099999999,
+            "p(95)": 116.11514700000001,
+            "p(99)": 283.2214335,
+            "avg": 70.14682684169233,
+            "min": 9.58442
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_blocked": {
+            "min": 0.0012,
+            "med": 0.0024,
+            "max": 64.302657,
+            "p(90)": 0.003901,
+            "p(95)": 0.004901,
+            "p(99)": 14.621446729999658,
+            "avg": 0.34036876236167046
+        },
+        "checks": {
+            "passes": 14278,
+            "fails": 0,
+            "value": 1
+        },
+        "iterations": {
+            "count": 14276,
+            "rate": 1394.6051711149123
+        },
+        "reservation_unexpected_status": {
+            "count": 0,
+            "rate": 0
+        },
+        "concert_overbooked": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 14278,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "reset OK": {
+                            "name": "reset OK",
+                            "path": "::setup::reset OK",
+                            "id": "319d421847c56611759a656efdee0864",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            },
+            "teardown": {
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {},
+                "checks": {
+                        "consistency snapshot OK": {
+                            "name": "consistency snapshot OK",
+                            "path": "::teardown::consistency snapshot OK",
+                            "id": "8e00c90823ee0a139e6a5ec935b6019b",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    },
+                "name": "teardown",
+                "path": "::teardown"
+            }
+        },
+        "checks": {
+            "status is expected": {
+                "path": "::status is expected",
+                "id": "7900b1724c781e002b4ea556d2517ccc",
+                "passes": 14276,
+                "fails": 0,
+                "name": "status is expected"
+            }
+        }
+    }
+}

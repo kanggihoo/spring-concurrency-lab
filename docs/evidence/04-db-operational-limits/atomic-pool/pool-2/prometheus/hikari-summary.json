@@ -1,0 +1,82 @@
+{
+  "runWindow": {
+    "path": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\04-db-operational-limits\\atomic-pool\\pool-2\\grafana\\run-window-phase4-atomic-pool-prometheus-pool-2-20260529-114727.json",
+    "phase": "phase-04",
+    "scenario": "atomic",
+    "preset": "pool-limit",
+    "pool": "2",
+    "mode": "prometheus",
+    "startedAt": 1780022848000,
+    "endedAt": 1780022859000,
+    "grafanaFrom": 1780022838000,
+    "grafanaTo": 1780022879000,
+    "evidenceRange": "11s",
+    "grafanaRange": "41s",
+    "queryTime": 1780022859
+  },
+  "prometheusUrl": "http://localhost:9090",
+  "queries": {
+    "hikariMaxMin": {
+      "query": "min_over_time(hikaricp_connections_max[11s])",
+      "value": 2,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780022859,
+            "2"
+          ]
+        }
+      ]
+    },
+    "hikariMaxMax": {
+      "query": "max_over_time(hikaricp_connections_max[11s])",
+      "value": 2,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780022859,
+            "2"
+          ]
+        }
+      ]
+    },
+    "hikariActiveMax": {
+      "query": "max(max_over_time(hikaricp_connections_active[11s]))",
+      "value": 2,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780022859,
+            "2"
+          ]
+        }
+      ]
+    },
+    "hikariPendingMax": {
+      "query": "max(max_over_time(hikaricp_connections_pending[11s]))",
+      "value": 98,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780022859,
+            "98"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,82 @@
+{
+  "runWindow": {
+    "path": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\04-db-operational-limits\\atomic-pool\\pool-10\\grafana\\run-window-phase4-atomic-pool-prometheus-pool-10-20260529-114819.json",
+    "phase": "phase-04",
+    "scenario": "atomic",
+    "preset": "pool-limit",
+    "pool": "10",
+    "mode": "prometheus",
+    "startedAt": 1780022900000,
+    "endedAt": 1780022912000,
+    "grafanaFrom": 1780022890000,
+    "grafanaTo": 1780022932000,
+    "evidenceRange": "12s",
+    "grafanaRange": "42s",
+    "queryTime": 1780022912
+  },
+  "prometheusUrl": "http://localhost:9090",
+  "queries": {
+    "hikariMaxMin": {
+      "query": "min_over_time(hikaricp_connections_max[12s])",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780022912,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariMaxMax": {
+      "query": "max_over_time(hikaricp_connections_max[12s])",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {
+            "application": "concurrency",
+            "instance": "host.docker.internal:8080",
+            "job": "spring",
+            "pool": "HikariPool-1"
+          },
+          "value": [
+            1780022912,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariActiveMax": {
+      "query": "max(max_over_time(hikaricp_connections_active[12s]))",
+      "value": 10,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780022912,
+            "10"
+          ]
+        }
+      ]
+    },
+    "hikariPendingMax": {
+      "query": "max(max_over_time(hikaricp_connections_pending[12s]))",
+      "value": 86,
+      "rawResult": [
+        {
+          "metric": {},
+          "value": [
+            1780022912,
+            "86"
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,184 @@
+{
+    "metrics": {
+        "iteration_duration": {
+            "min": 3.085409,
+            "med": 110.94759049999999,
+            "max": 1222.052406,
+            "p(90)": 155.05218810000014,
+            "p(95)": 207.04960694999997,
+            "avg": 133.85457405018352
+        },
+        "http_req_duration{expected_response:true}": {
+            "max": 1221.383361,
+            "p(90)": 154.5389869,
+            "p(95)": 205.47644669999983,
+            "avg": 133.4167704854215,
+            "min": 2.9495,
+            "med": 110.779601
+        },
+        "iterations": {
+            "count": 7612,
+            "rate": 726.8547510332467
+        },
+        "http_reqs": {
+            "count": 7614,
+            "rate": 727.0457270582159
+        },
+        "http_req_connecting": {
+            "med": 0,
+            "max": 44.320322,
+            "p(90)": 0,
+            "p(95)": 0,
+            "avg": 0.26885031967428413,
+            "min": 0
+        },
+        "http_req_receiving": {
+            "avg": 0.16024676333070678,
+            "min": 0.026102,
+            "med": 0.108407,
+            "max": 4.946336,
+            "p(90)": 0.3111607,
+            "p(95)": 0.42236234999999994
+        },
+        "checks": {
+            "passes": 7614,
+            "fails": 0,
+            "value": 1
+        },
+        "vus": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_failed": {
+            "fails": 7614,
+            "passes": 0,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "data_sent": {
+            "count": 1438269,
+            "rate": 137337.44822830224
+        },
+        "data_received": {
+            "count": 1111769,
+            "rate": 106160.61215206012
+        },
+        "http_req_waiting": {
+            "max": 1221.233651,
+            "p(90)": 154.3436994,
+            "p(95)": 205.3502564499998,
+            "avg": 133.23432621040126,
+            "min": 2.701184,
+            "med": 110.6530425
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_duration": {
+            "min": 2.9495,
+            "med": 110.779601,
+            "max": 1221.383361,
+            "p(90)": 154.5389869,
+            "p(95)": 205.47644669999983,
+            "avg": 133.4167704854215,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_blocked": {
+            "avg": 0.273792584712375,
+            "min": 0.0019,
+            "med": 0.0035,
+            "max": 44.370525,
+            "p(90)": 0.0048,
+            "p(95)": 0.006
+        },
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_sending": {
+            "med": 0.013701,
+            "max": 0.805453,
+            "p(90)": 0.037603,
+            "p(95)": 0.042937649999999945,
+            "avg": 0.02219751168899388,
+            "min": 0.007701
+        },
+        "concert_overbooked": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        }
+    },
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "checks": {
+                    "reset OK": {
+                        "path": "::setup::reset OK",
+                        "id": "319d421847c56611759a656efdee0864",
+                        "passes": 1,
+                        "fails": 0,
+                        "name": "reset OK"
+                    }
+                },
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {}
+            },
+            "teardown": {
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {},
+                "checks": {
+                        "consistency snapshot OK": {
+                            "name": "consistency snapshot OK",
+                            "path": "::teardown::consistency snapshot OK",
+                            "id": "8e00c90823ee0a139e6a5ec935b6019b",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            }
+        },
+        "checks": {
+            "status 200 or 409": {
+                "name": "status 200 or 409",
+                "path": "::status 200 or 409",
+                "id": "c1cbdbda1320e649b7ebfacbf61f9b74",
+                "passes": 7612,
+                "fails": 0
+            }
+        }
+    }
+}

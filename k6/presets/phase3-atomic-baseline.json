@@ -1,0 +1,17 @@
+{
+  "phase": "phase-03",
+  "evidenceDir": "03-db-strategies/atomic-update",
+  "scenario": "atomic",
+  "preset": "baseline",
+  "pool": "default",
+  "path": "/api/reservations/atomic",
+  "executor": "constant-vus",
+  "vus": 100,
+  "duration": "10s",
+  "thresholds": {
+    "http_req_failed": ["rate<0.01"],
+    "http_req_duration": ["p(95)<1000"]
+  },
+  "resetBeforeRun": true,
+  "captureConsistency": true
+}

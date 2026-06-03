@@ -48,7 +48,7 @@
 7. k6 smoke test를 실행해 부하 테스트 경로를 확인한다.
 
    ```bash
-   docker compose --profile test run --rm k6 run --out experimental-prometheus-rw /scripts/simple_test.js
+   bash k6/run.sh baseline prometheus
    ```
 
 8. 확인 결과를 `report.md`에 기록한다.

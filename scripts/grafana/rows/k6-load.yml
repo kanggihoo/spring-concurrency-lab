@@ -1,0 +1,41 @@
+id: k6-load
+title: k6 Load
+panels:
+  - type: timeseries
+    title: Performance Overview
+    w: 24
+    h: 10
+    tooltipMode: multi
+    targets:
+      - query: k6.vus
+        legend: vus
+      - query: k6.http.rps
+        legend: rps
+      - query: k6.http.error-rps
+        legend: error_rps
+      - query: k6.http.p95
+        legend: p95_latency
+  - type: timeseries
+    title: HTTP Request Rate
+    tooltipMode: multi
+    targets:
+      - query: k6.http.success-rps
+        legend: success_rps
+      - query: k6.http.error-rps
+        legend: error_rps
+  - type: timeseries
+    title: Latency and Iteration p95
+    tooltipMode: multi
+    targets:
+      - query: k6.http.p95
+        legend: http_p95
+      - query: k6.iteration.p95
+        legend: iteration_p95
+  - type: timeseries
+    title: Checks Success Rate
+    query: k6.checks.by-name
+    legend: '{{check}}'
+  - type: timeseries
+    title: Dropped Iterations
+    query: k6.dropped-iterations.rate
+    legend: dropped

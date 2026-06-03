@@ -1,0 +1,18 @@
+id: spring-runtime
+title: Spring Runtime
+panels:
+  - type: stat
+    title: Hikari Timeout Count
+    query: hikari.timeout-count
+  - type: stat
+    title: Heap Used
+    query: spring.runtime.heap-used-percent
+    unit: percent
+  - type: timeseries
+    title: Process CPU Usage
+    query: spring.runtime.process-cpu-percent
+    legend: process_cpu
+  - type: timeseries
+    title: GC Pause Time
+    query: spring.runtime.gc-pause-rate
+    legend: gc_pause

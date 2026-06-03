@@ -1,0 +1,28 @@
+{
+  "strategy": "optimistic-lock",
+  "runWindowPath": "docs/evidence/03-db-strategies/optimistic-lock/grafana/run-window-phase3-optimistic-baseline-prometheus-20260530-173116.json",
+  "range": "11s",
+  "query": {
+    "request": {
+      "url": "http://localhost:9090/api/v1/query?query=sum%28increase%28reservation_optimistic_retry_total%5B11s%5D%29%29&time=1780129887",
+      "query": "sum(increase(reservation_optimistic_retry_total[11s]))",
+      "time": 1780129887
+    },
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1780129887,
+              "0"
+            ]
+          }
+        ]
+      }
+    },
+    "extractedValue": 0
+  }
+}

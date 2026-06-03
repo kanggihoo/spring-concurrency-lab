@@ -1,0 +1,53 @@
+{
+  "strategy": "atomic-update",
+  "runWindowPath": "docs/evidence/03-db-strategies/atomic-update/grafana/run-window-phase3-atomic-baseline-prometheus-20260530-173143.json",
+  "range": "11s",
+  "queries": {
+    "k6HttpRequests": {
+      "request": {
+        "url": "http://localhost:9090/api/v1/query?query=sum%28increase%28k6_http_reqs_total%7Bphase%3D%22phase-03%22%2Cscenario%3D%22atomic%22%2Cpreset%3D%22baseline%22%2Cpool%3D%22default%22%7D%5B11s%5D%29%29&time=1780129914",
+        "query": "sum(increase(k6_http_reqs_total{phase=\"phase-03\",scenario=\"atomic\",preset=\"baseline\",pool=\"default\"}[11s]))",
+        "time": 1780129914
+      },
+      "response": {
+        "status": "success",
+        "data": {
+          "resultType": "vector",
+          "result": [
+            {
+              "metric": {},
+              "value": [
+                1780129914,
+                "16243.7805173416"
+              ]
+            }
+          ]
+        }
+      },
+      "extractedValue": 16243.7805173416
+    },
+    "k6HttpReqDurationP99Max": {
+      "request": {
+        "url": "http://localhost:9090/api/v1/query?query=max%28max_over_time%28k6_http_req_duration_p99%7Bphase%3D%22phase-03%22%2Cscenario%3D%22atomic%22%2Cpreset%3D%22baseline%22%2Cpool%3D%22default%22%7D%5B11s%5D%29%29&time=1780129914",
+        "query": "max(max_over_time(k6_http_req_duration_p99{phase=\"phase-03\",scenario=\"atomic\",preset=\"baseline\",pool=\"default\"}[11s]))",
+        "time": 1780129914
+      },
+      "response": {
+        "status": "success",
+        "data": {
+          "resultType": "vector",
+          "result": [
+            {
+              "metric": {},
+              "value": [
+                1780129914,
+                "0.30152037803000004"
+              ]
+            }
+          ]
+        }
+      },
+      "extractedValue": 0.30152037803000004
+    }
+  }
+}

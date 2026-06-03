@@ -1,0 +1,11 @@
+reservation.count:
+  expr: 'max(k6_concert_reservation_count{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+reservation.remaining-seats:
+  expr: 'max(k6_concert_remaining_seats{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+reservation.seat-count-inconsistency:
+  expr: 'max(k6_concert_seat_count_inconsistency{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'
+
+reservation.overbooked:
+  expr: 'max(k6_concert_overbooked{phase="$phase", scenario="$scenario", preset="$preset", pool="$pool"})'

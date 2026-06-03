@@ -3,8 +3,10 @@ package com.example.concurrency;
 import com.example.concurrency.domain.Concert;
 import com.example.concurrency.repository.ConcertRepository;
 import com.example.concurrency.repository.ReservationRepository;
-import com.example.concurrency.service.ReservationService;
+import com.example.concurrency.service.ReservationCommand;
+import com.example.concurrency.service.ReservationUseCase;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
 @Testcontainers
+@Disabled("Phase 2 no-lock baseline is fixed by recorded evidence; Phase 3 adds @Version for optimistic strategy.")
 class ReservationConcurrencyTest {
 
     @Container
@@ -33,7 +36,7 @@ class ReservationConcurrencyTest {
             .withPassword("password");
 
     @Autowired
-    private ReservationService reservationService;
+    private ReservationUseCase reservationUseCase;
 
     @Autowired
     private ConcertRepository concertRepository;
@@ -65,7 +68,7 @@ class ReservationConcurrencyTest {
             long userId = i + 1;
             executor.submit(() -> {
                 try {
-                    reservationService.reserve(1L, userId);
+                    reservationUseCase.reserve("no-lock", new ReservationCommand(1L, userId));
                 } catch (Exception ignored) {
                 } finally {
                     latch.countDown();

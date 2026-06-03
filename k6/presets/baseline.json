@@ -1,0 +1,16 @@
+{
+  "phase": "phase-02",
+  "evidenceDir": "02-no-lock-baseline",
+  "scenario": "no-lock",
+  "preset": "baseline",
+  "pool": "default",
+  "executor": "constant-vus",
+  "vus": 100,
+  "duration": "10s",
+  "thresholds": {
+    "http_req_failed": ["rate<0.01"],
+    "http_req_duration": ["p(95)<1000"]
+  },
+  "resetBeforeRun": true,
+  "captureConsistency": true
+}

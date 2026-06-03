@@ -1,0 +1,9 @@
+ locktype |   relation   |      mode       | granted | count 
+----------+--------------+-----------------+---------+-------
+ tuple    | concert      | ExclusiveLock   | f       |     7
+ relation | concert_pkey | RowShareLock    | t       |     9
+ relation | concert      | RowShareLock    | t       |     9
+ relation | pg_locks     | AccessShareLock | t       |     1
+ tuple    | concert      | ExclusiveLock   | t       |     1
+(5 rows)
+

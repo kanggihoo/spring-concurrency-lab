@@ -1,0 +1,17 @@
+hikari.timeout-count:
+  expr: 'sum(increase(hikaricp_connections_timeout_total[$__range]))'
+
+hikari.pending-max:
+  expr: 'max(max_over_time(hikaricp_connections_pending[$__range]))'
+
+hikari.active:
+  expr: 'hikaricp_connections_active'
+
+hikari.max:
+  expr: 'hikaricp_connections_max'
+
+hikari.pending:
+  expr: 'hikaricp_connections_pending'
+
+hikari.acquire-time:
+  expr: 'rate(hikaricp_connections_acquire_seconds_sum[$__rate_interval]) / rate(hikaricp_connections_acquire_seconds_count[$__rate_interval])'

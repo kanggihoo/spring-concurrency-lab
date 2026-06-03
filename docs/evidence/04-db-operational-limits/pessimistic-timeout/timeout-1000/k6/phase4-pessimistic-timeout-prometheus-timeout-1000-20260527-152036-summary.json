@@ -1,0 +1,184 @@
+{
+    "root_group": {
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "name": "setup",
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "reset OK": {
+                            "name": "reset OK",
+                            "path": "::setup::reset OK",
+                            "id": "319d421847c56611759a656efdee0864",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            },
+            "teardown": {
+                "checks": {
+                    "consistency snapshot OK": {
+                        "fails": 0,
+                        "name": "consistency snapshot OK",
+                        "path": "::teardown::consistency snapshot OK",
+                        "id": "8e00c90823ee0a139e6a5ec935b6019b",
+                        "passes": 1
+                    }
+                },
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {}
+            }
+        },
+        "checks": {
+            "status 200 or 409": {
+                "name": "status 200 or 409",
+                "path": "::status 200 or 409",
+                "id": "c1cbdbda1320e649b7ebfacbf61f9b74",
+                "passes": 8222,
+                "fails": 0
+            }
+        }
+    },
+    "metrics": {
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_connecting": {
+            "avg": 0.23073992728599219,
+            "min": 0,
+            "med": 0,
+            "max": 44.535584,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "data_sent": {
+            "count": 1553524,
+            "rate": 148116.69316776603
+        },
+        "vus_max": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_tls_handshaking": {
+            "avg": 0,
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0
+        },
+        "http_req_receiving": {
+            "p(95)": 0.46489799999999987,
+            "avg": 0.16736198662451343,
+            "min": 0.026501,
+            "med": 0.114007,
+            "max": 2.513251,
+            "p(90)": 0.3287903
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_reqs": {
+            "count": 8224,
+            "rate": 784.0958263996616
+        },
+        "checks": {
+            "fails": 0,
+            "passes": 8224,
+            "value": 1
+        },
+        "data_received": {
+            "count": 1200829,
+            "rate": 114489.90845326839
+        },
+        "iteration_duration": {
+            "avg": 122.1181631818293,
+            "min": 3.48511,
+            "med": 104.89815899999999,
+            "max": 844.648904,
+            "p(90)": 167.39887770000004,
+            "p(95)": 194.88307869999997
+        },
+        "concert_overbooked": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_waiting": {
+            "avg": 121.57302054061327,
+            "min": 3.050184,
+            "med": 104.622643,
+            "max": 824.302477,
+            "p(90)": 166.9457847,
+            "p(95)": 194.46683049999993
+        },
+        "vus": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_blocked": {
+            "max": 44.618889,
+            "p(90)": 0.0045,
+            "p(95)": 0.0053,
+            "avg": 0.235105636916343,
+            "min": 0.0022,
+            "med": 0.0034
+        },
+        "iterations": {
+            "count": 8222,
+            "rate": 783.9051416169768
+        },
+        "http_req_duration": {
+            "avg": 121.7600813754864,
+            "min": 3.301599,
+            "med": 104.75845100000001,
+            "max": 824.580794,
+            "p(90)": 167.200495,
+            "p(95)": 194.63454269999997,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "http_req_sending": {
+            "min": 0.007801,
+            "med": 0.013201,
+            "max": 1.243875,
+            "p(90)": 0.037302,
+            "p(95)": 0.041202,
+            "avg": 0.019698848249027335
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 8224,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "http_req_duration{expected_response:true}": {
+            "med": 104.75845100000001,
+            "max": 824.580794,
+            "p(90)": 167.200495,
+            "p(95)": 194.63454269999997,
+            "avg": 121.7600813754864,
+            "min": 3.301599
+        }
+    }
+}

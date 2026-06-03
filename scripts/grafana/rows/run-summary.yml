@@ -1,0 +1,36 @@
+id: run-summary
+title: Run Summary
+panels:
+  - type: stat
+    title: k6 p95
+    query: k6.http.p95
+    unit: s
+    calc: max
+  - type: stat
+    title: k6 p99
+    query: k6.http.p99
+    unit: s
+    calc: max
+  - type: stat
+    title: Actual RPS
+    query: k6.http.rps
+    unit: reqps
+    calc: max
+  - type: stat
+    title: Error Rate
+    query: k6.http.error-rate
+    unit: percent
+  - type: stat
+    title: Checks Success
+    query: k6.checks.success-percent
+    unit: percent
+  - type: stat
+    title: Dropped Iterations
+    query: k6.dropped-iterations.total
+  - type: stat
+    title: PG Connections Used
+    query: postgres.connections.used-percent
+    unit: percent
+  - type: stat
+    title: Hikari Pending Max
+    query: hikari.pending-max

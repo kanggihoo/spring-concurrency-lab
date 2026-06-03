@@ -1,0 +1,209 @@
+{
+    "metrics": {
+        "http_req_blocked": {
+            "avg": 0.4190886798258795,
+            "min": 0.001801,
+            "med": 0.0038,
+            "max": 58.118512,
+            "p(90)": 0.0051,
+            "p(95)": 0.006401,
+            "p(99)": 25.070217780000007
+        },
+        "http_req_waiting": {
+            "p(95)": 263.9728894,
+            "p(99)": 561.8812574500017,
+            "avg": 149.82152390663435,
+            "min": 2.775334,
+            "med": 121.6457935,
+            "max": 857.170655,
+            "p(90)": 227.07210680000003
+        },
+        "vus_max": {
+            "min": 100,
+            "max": 100,
+            "value": 100
+        },
+        "reservation_lock_timeout": {
+            "count": 0,
+            "rate": 0
+        },
+        "iteration_duration": {
+            "p(99)": 570.5539489399999,
+            "avg": 150.6517497036036,
+            "min": 3.158667,
+            "med": 121.99927500000001,
+            "max": 885.202424,
+            "p(90)": 227.942371,
+            "p(95)": 264.95334935
+        },
+        "reservation_sold_out": {
+            "count": 6560,
+            "rate": 637.4635029940205
+        },
+        "http_req_tls_handshaking": {
+            "min": 0,
+            "med": 0,
+            "max": 0,
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 0,
+            "avg": 0
+        },
+        "vus": {
+            "max": 100,
+            "value": 100,
+            "min": 100
+        },
+        "checks": {
+            "passes": 6662,
+            "fails": 0,
+            "value": 1
+        },
+        "http_req_connecting": {
+            "p(90)": 0,
+            "p(95)": 0,
+            "p(99)": 25.018913170000012,
+            "avg": 0.4138243531972385,
+            "min": 0,
+            "med": 0,
+            "max": 58.08571
+        },
+        "concert_overbooked": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "concert_remaining_seats": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "concert_seat_count_inconsistency": {
+            "value": 0,
+            "min": 0,
+            "max": 0
+        },
+        "http_req_duration": {
+            "p(95)": 264.2360325,
+            "p(99)": 562.8359635800016,
+            "avg": 150.04783331717172,
+            "min": 3.035256,
+            "med": 121.8462115,
+            "max": 857.762205,
+            "p(90)": 227.55190990000006,
+            "thresholds": {
+                "p(95)<1000": false
+            }
+        },
+        "iterations": {
+            "count": 6660,
+            "rate": 647.1809344421
+        },
+        "concert_reservation_count": {
+            "value": 100,
+            "min": 100,
+            "max": 100
+        },
+        "reservation_reserved": {
+            "count": 100,
+            "rate": 9.71743144807958
+        },
+        "http_req_duration{expected_response:true}": {
+            "p(99)": 562.8359635800016,
+            "avg": 150.04783331717172,
+            "min": 3.035256,
+            "med": 121.8462115,
+            "max": 857.762205,
+            "p(90)": 227.55190990000006,
+            "p(95)": 264.2360325
+        },
+        "http_req_receiving": {
+            "p(90)": 0.41593769999999997,
+            "p(95)": 0.5535490499999995,
+            "p(99)": 1.0489150000000012,
+            "avg": 0.20130094100870508,
+            "min": 0.024002,
+            "med": 0.1185105,
+            "max": 10.78297
+        },
+        "data_sent": {
+            "count": 1258415,
+            "rate": 122285.61495735066
+        },
+        "http_req_failed": {
+            "passes": 0,
+            "fails": 6662,
+            "thresholds": {
+                "rate<0.01": false
+            },
+            "value": 0
+        },
+        "reservation_unexpected_status": {
+            "count": 0,
+            "rate": 0
+        },
+        "http_req_sending": {
+            "max": 1.385924,
+            "p(90)": 0.040904,
+            "p(95)": 0.04829899999999998,
+            "p(99)": 0.15431100000000075,
+            "avg": 0.02500846952867,
+            "min": 0.007501,
+            "med": 0.014701
+        },
+        "data_received": {
+            "count": 972777,
+            "rate": 94528.9381176851
+        },
+        "http_reqs": {
+            "count": 6662,
+            "rate": 647.3752830710616
+        }
+    },
+    "root_group": {
+        "checks": {
+            "status is expected": {
+                "name": "status is expected",
+                "path": "::status is expected",
+                "id": "7900b1724c781e002b4ea556d2517ccc",
+                "passes": 6660,
+                "fails": 0
+            }
+        },
+        "name": "",
+        "path": "",
+        "id": "d41d8cd98f00b204e9800998ecf8427e",
+        "groups": {
+            "setup": {
+                "path": "::setup",
+                "id": "5c0f8025f7e0b6654089e5b00e950f1a",
+                "groups": {},
+                "checks": {
+                        "reset OK": {
+                            "id": "319d421847c56611759a656efdee0864",
+                            "passes": 1,
+                            "fails": 0,
+                            "name": "reset OK",
+                            "path": "::setup::reset OK"
+                        }
+                    },
+                "name": "setup"
+            },
+            "teardown": {
+                "name": "teardown",
+                "path": "::teardown",
+                "id": "a8a9942382e8ffe2e56ef29e664b8229",
+                "groups": {},
+                "checks": {
+                        "consistency snapshot OK": {
+                            "name": "consistency snapshot OK",
+                            "path": "::teardown::consistency snapshot OK",
+                            "id": "8e00c90823ee0a139e6a5ec935b6019b",
+                            "passes": 1,
+                            "fails": 0
+                        }
+                    }
+            }
+        }
+    }
+}

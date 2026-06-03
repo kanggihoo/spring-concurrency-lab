@@ -1,0 +1,113 @@
+---
+title: PostgreSQL Reservation Strategies
+sidebar_label: Portfolio
+description: PostgreSQL 기반 Reservation 동시성 전략의 정합성, 처리량, tail latency 비교
+---
+
+# PostgreSQL Reservation Strategies
+
+Phase 3는 하나의 Concert에 동시에 Reservation 요청이 몰릴 때 PostgreSQL만으로 Remaining Seats 차감 정합성을 지킬 수 있는지 비교한 실험이다.
+
+Full technical report: [report.md](./report.md)
+
+## Problem
+
+Concert Reservation은 개별 좌석 번호가 아니라 Remaining Seats 숫자를 차감하는 counted-seat 모델이다. 이 모델에서 핵심 invariant는 성공한 Reservation 수와 남은 좌석 수가 항상 Initial Seat Count를 설명해야 한다는 것이다.
+
+- `reservation_count + remaining_seats == initial_seat_count`
+- `reservation_count <= initial_seat_count`
+
+Phase 2의 no-lock baseline은 동시 요청에서 이 invariant가 깨질 수 있음을 보여줬다. Phase 3의 질문은 세 가지 PostgreSQL 전략이 같은 부하 조건에서 correctness를 지키는지, 그리고 correctness를 얻기 위해 어떤 throughput, tail latency, 운영 비용을 지불하는지였다.
+
+## Experiment Setup
+
+모든 전략은 같은 workload와 같은 초기 데이터로 실행했다.
+
+| Condition | Value |
+|---|---:|
+| Concert | 1 |
+| Initial Seat Count | 100 |
+| Virtual Users | 100 |
+| Duration | 10 seconds |
+| Reset policy | reset before each strategy |
+| Expected HTTP status | 200, 409 |
+| Workload shape | sold-out-dominant repeated reservation requests |
+
+핵심 숫자는 k6 summary JSON과 SQL consistency snapshot에서 읽었다. Prometheus는 실행 구간 확인과 Pessimistic Lock의 `pg_locks_count` lock activity 보조 지표로만 사용했다.
+
+## Compared Strategies
+
+| Strategy | Mechanism | Expected Trade-off |
+|---|---|---|
+| Pessimistic Lock | Concert row를 `SELECT ... FOR UPDATE` 계열 lock으로 직렬화 | correctness는 명확하지만 lock wait가 tail latency로 전이될 수 있음 |
+| Optimistic Lock + Retry | version 충돌을 retry하고 한도 초과 시 409로 응답 | DB lock wait는 줄일 수 있지만 retry exhausted가 사용자에게 보일 수 있음 |
+| Atomic Conditional Update | `remaining_seats > 0` 조건을 단일 UPDATE의 성공 조건으로 사용 | counted-seat decrement에는 단순하고 빠르지만 복잡한 도메인 검증에는 제약이 있음 |
+
+## Key Result
+
+세 전략 모두 최종 상태는 Reservation 100건, Remaining Seats 0, Seat Count Inconsistency 0, Overbooking `false`였다. 따라서 이 phase의 차이는 correctness가 아니라 throughput, tail latency, 사용자에게 보이는 거절 방식의 차이다.
+
+| Strategy | RPS | p95 | p99 | Reserved | Sold Out | Optimistic Exhausted | Seat Count Inconsistency | Overbooking |
+|---|---:|---:|---:|---:|---:|---:|---:|---|
+| Pessimistic Lock | 933.83 | 210.42 ms | 488.61 ms | 100 | 9486 | 0 | 0 | false |
+| Optimistic Lock + Retry | 1541.40 | 192.15 ms | 417.56 ms | 100 | 15430 | 93 | 0 | false |
+| Atomic Conditional Update | 2315.40 | 114.93 ms | 200.86 ms | 100 | 23261 | 0 | 0 | false |
+
+Atomic Conditional Update가 이번 기준 부하에서 가장 높은 RPS와 가장 낮은 p95/p99를 기록했다. Optimistic Lock + Retry는 Pessimistic Lock보다 빠르지만 `optimistic_lock_exhausted` 93건이 발생했고, Pessimistic Lock은 가장 낮은 RPS와 가장 높은 p99를 보였다.
+
+## Lock Wait Evidence
+
+Pessimistic Lock의 높은 tail latency는 PostgreSQL lock snapshot으로 설명할 수 있다.
+
+| Evidence | Observation |
+|---|---|
+| [`pg_stat_activity.txt`](../../evidence/03-db-strategies/pessimistic-lock/sql/pg-stat-activity.txt) | 여러 backend가 `Lock` wait 상태였고 blocking PID가 포착됨 |
+| [`pg-lock-summary.txt`](../../evidence/03-db-strategies/pessimistic-lock/sql/pg-lock-summary.txt) | `concert` tuple `ExclusiveLock` 대기 row 7건 |
+| [`pg-locks-count.json`](../../evidence/03-db-strategies/pessimistic-lock/prometheus/pg-locks-count.json) | `pg_locks_count` max 16 |
+
+이 증거는 Pessimistic Lock의 p99가 높게 나온 이유를 애플리케이션 처리 지연이 아니라 같은 Concert row에 대한 DB row lock serialization으로 좁힌다.
+
+## Response Classification
+
+HTTP 409는 이 실험에서 단순 실패로 처리하지 않았다. sold out과 optimistic retry exhaustion은 기준 부하에서 기대 가능한 비즈니스 응답이므로 body status를 기준으로 분리했다.
+
+| Response | Meaning |
+|---|---|
+| `200 {"status":"reserved"}` | Reservation 생성 성공 |
+| `409 {"status":"sold_out"}` | Remaining Seats가 이미 0 |
+| `409 {"status":"optimistic_lock_exhausted"}` | Optimistic retry 한도 초과 |
+| `reservation_unexpected_status` | expected contract 밖의 응답 |
+
+모든 전략에서 `reservation_unexpected_status=0`이었고, k6 terminal log 기준 `http_req_failed=0.00%`였다.
+
+## Decision
+
+Phase 3 기준 부하에서는 Atomic Conditional Update를 기본 DB Reservation 전략으로 선택한다.
+
+- 세 전략 모두 counted-seat invariant를 지켰다.
+- Atomic Conditional Update가 RPS, p95, p99에서 가장 좋았다.
+- Atomic Conditional Update는 retry exhausted 응답이 없었다.
+- Pessimistic Lock은 lock wait가 실제로 관측됐고 tail latency가 가장 높았다.
+- Optimistic Lock + Retry는 성능은 중간 수준이지만 `optimistic_lock_exhausted`가 사용자에게 보이는 trade-off로 남았다.
+
+운영 선택지는 다음처럼 둔다.
+
+- 기본 counted-seat Reservation 경로: Atomic Conditional Update
+- 엔티티 기반 복잡한 도메인 검증이 필요한 경로: Optimistic Lock + Retry 후보
+- 명시적 직렬화와 correctness reference가 필요한 검증 경로: Pessimistic Lock 후보
+
+## What This Demonstrates
+
+- DB concurrency strategy를 correctness만이 아니라 throughput, p95/p99, response classification, lock wait로 나누어 비교했다.
+- k6 custom counters와 SQL consistency snapshot을 함께 사용해 성공, sold out, retry exhausted, unexpected response를 분리했다.
+- PostgreSQL `pg_stat_activity`와 `pg_locks`를 사용해 Pessimistic Lock의 tail latency 원인을 row lock wait로 설명했다.
+- Atomic Conditional Update가 counted-seat decrement 문제에 잘 맞는 이유와, 복잡한 도메인 검증이 필요한 경우의 제약을 함께 정리했다.
+
+## Limitations
+
+- 각 전략은 100 VUs, 10초, Concert 1개에 대한 단일 기준 부하로 실행했다.
+- 긴 지속 부하, spike 부하, ramp-up/ramp-down은 포함하지 않았다.
+- connection pool size matrix와 lock timeout 정책은 Phase 4 범위로 남겼다.
+- 같은 User의 중복 Reservation 방지, idempotency key, Redis 분산락은 이 phase의 범위 밖이다.
+- SQL `EXPLAIN ANALYZE` 기반 query plan 분석은 수행하지 않았다. 이 phase는 query plan tuning보다 concurrency control strategy 비교에 초점을 둔다.
+

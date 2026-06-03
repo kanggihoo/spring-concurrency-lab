@@ -1,0 +1,17 @@
+spring.http.request-rate-by-uri:
+  expr: 'sum by (uri) (rate(http_server_requests_seconds_count{uri=~"$uri", uri!="/actuator/prometheus", uri!="/**"}[$__rate_interval]))'
+
+spring.http.p95-by-uri:
+  expr: 'histogram_quantile(0.95, sum by (le, uri) (rate(http_server_requests_seconds_bucket{uri=~"$uri", uri!="/actuator/prometheus", uri!="/**"}[$__rate_interval])))'
+
+spring.http.errors-by-status:
+  expr: 'sum by (status) (rate(http_server_requests_seconds_count{status!~"2..", uri!="/actuator/prometheus", uri!="/**"}[$__rate_interval]))'
+
+spring.runtime.heap-used-percent:
+  expr: 'sum(jvm_memory_used_bytes{area="heap"}) * 100 / sum(jvm_memory_max_bytes{area="heap"})'
+
+spring.runtime.process-cpu-percent:
+  expr: 'process_cpu_usage * 100'
+
+spring.runtime.gc-pause-rate:
+  expr: 'sum(rate(jvm_gc_pause_seconds_sum[$__rate_interval]))'

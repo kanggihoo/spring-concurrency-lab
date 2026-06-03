@@ -1,0 +1,19 @@
+id: hikari-pool
+title: Hikari Pool
+panels:
+  - type: timeseries
+    title: Active Connections
+    query: hikari.active
+    legend: active
+  - type: timeseries
+    title: Max Connections
+    query: hikari.max
+    legend: max
+  - type: timeseries
+    title: Pending Threads
+    query: hikari.pending
+    legend: pending
+  - type: timeseries
+    title: Acquire Time
+    query: hikari.acquire-time
+    legend: avg acquire

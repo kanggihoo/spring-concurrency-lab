@@ -1,0 +1,18 @@
+{
+  "phase": "phase-04",
+  "evidenceDir": "04-db-operational-limits/atomic-pool",
+  "scenario": "atomic",
+  "preset": "pool-limit",
+  "pool": "10",
+  "path": "/api/reservations/atomic",
+  "expectedStatuses": [200, 409],
+  "executor": "constant-vus",
+  "vus": 100,
+  "duration": "10s",
+  "thresholds": {
+    "http_req_failed": ["rate<0.01"],
+    "http_req_duration": ["p(95)<1000"]
+  },
+  "resetBeforeRun": true,
+  "captureConsistency": true
+}

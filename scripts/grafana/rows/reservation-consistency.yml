@@ -1,0 +1,15 @@
+id: reservation-consistency
+title: Reservation Consistency
+panels:
+  - type: stat
+    title: Reservation Count
+    query: reservation.count
+  - type: stat
+    title: Remaining Seats
+    query: reservation.remaining-seats
+  - type: stat
+    title: Seat Count Inconsistency
+    query: reservation.seat-count-inconsistency
+  - type: stat
+    title: Overbooked
+    query: reservation.overbooked

@@ -1,0 +1,28 @@
+{
+  "strategy": "pessimistic-lock",
+  "runWindowPath": "docs/evidence/03-db-strategies/pessimistic-lock/grafana/run-window-phase3-pessimistic-baseline-prometheus-20260530-173018.json",
+  "range": "11s",
+  "query": {
+    "request": {
+      "url": "http://localhost:9090/api/v1/query?query=max%28max_over_time%28pg_locks_count%5B11s%5D%29%29&time=1780129829",
+      "query": "max(max_over_time(pg_locks_count[11s]))",
+      "time": 1780129829
+    },
+    "response": {
+      "status": "success",
+      "data": {
+        "resultType": "vector",
+        "result": [
+          {
+            "metric": {},
+            "value": [
+              1780129829,
+              "16"
+            ]
+          }
+        ]
+      }
+    },
+    "extractedValue": 16
+  }
+}

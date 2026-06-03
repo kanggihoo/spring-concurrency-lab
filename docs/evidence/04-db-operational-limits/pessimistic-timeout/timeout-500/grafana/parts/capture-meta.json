@@ -1,0 +1,124 @@
+{
+  "url": "http://localhost:3000/d/concurrency-lab-overview/concurrency-lab-overview?orgId=1&from=1780023126000&to=1780023167000&timezone=browser&var-phase=phase-04&var-scenario=pessimistic&var-preset=lock-timeout&var-pool=10&var-uri=%24__all&var-table=%24__all&refresh=10s",
+  "runWindow": "C:\\Users\\SSAFY\\Desktop\\spring-concurrency-lab\\docs\\evidence\\04-db-operational-limits\\pessimistic-timeout\\timeout-500\\grafana\\run-window-phase4-pessimistic-timeout-prometheus-timeout-500-20260529-115215.json",
+  "selector": "[data-testid=\"data-testid DashboardEditPaneSplitter body container\"]",
+  "dashboard": "overview",
+  "variables": {
+    "phase": "phase-04",
+    "scenario": "pessimistic",
+    "preset": "lock-timeout",
+    "pool": "10",
+    "uri": "$__all",
+    "table": "$__all"
+  },
+  "viewport": {
+    "width": 1600,
+    "height": 965
+  },
+  "initial": {
+    "scrollTop": 0,
+    "scrollHeight": 4759,
+    "clientHeight": 813,
+    "clientWidth": 1226,
+    "rect": {
+      "x": 300,
+      "y": 152,
+      "width": 1236,
+      "height": 813
+    }
+  },
+  "offsets": [
+    0,
+    813,
+    1626,
+    2439,
+    3252,
+    3946
+  ],
+  "captures": [
+    {
+      "requestedOffset": 0,
+      "actualOffset": 0,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-01-scroll0.png"
+    },
+    {
+      "requestedOffset": 813,
+      "actualOffset": 813,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-02-scroll813.png"
+    },
+    {
+      "requestedOffset": 1626,
+      "actualOffset": 1626,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-03-scroll1626.png"
+    },
+    {
+      "requestedOffset": 2439,
+      "actualOffset": 2439,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-04-scroll2439.png"
+    },
+    {
+      "requestedOffset": 3252,
+      "actualOffset": 3252,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-05-scroll3252.png"
+    },
+    {
+      "requestedOffset": 3946,
+      "actualOffset": 3946,
+      "scrollHeight": 4759,
+      "clientHeight": 813,
+      "clientWidth": 1226,
+      "rect": {
+        "x": 300,
+        "y": 152,
+        "width": 1236,
+        "height": 813
+      },
+      "file": "part-06-scroll3946.png"
+    }
+  ]
+}

@@ -1,0 +1,59 @@
+  pid  |        state        | wait_event_type |     wait_event      |                                                          query
+-------+---------------------+-----------------+---------------------+--------------------------------------------------------------------------------------------------------------------------
+    73 | idle                | Client          | ClientRead          | SELECT * FROM pg_stat_database_conflicts;
+ 14144 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14138 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14135 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14117 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14143 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14136 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14120 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14116 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14101 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14104 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14098 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14141 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14109 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14128 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14134 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14099 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14133 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14130 | idle in transaction | Client          | ClientRead          | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14113 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14132 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14139 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14110 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14137 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14142 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14111 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14140 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14094 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14100 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14103 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14112 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14114 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14115 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14102 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14118 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14119 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14121 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14122 | active              | Lock            | transactionid       | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14123 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14124 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14125 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14126 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14096 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14127 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14129 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14097 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14131 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14106 | idle                | Client          | ClientRead          | ROLLBACK
+ 14105 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14107 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+ 14108 | active              | Lock            | tuple               | select c1_0.id,c1_0.remaining_seats,c1_0.title,c1_0.version from concert c1_0 where c1_0.id=$1 for no key update of c1_0
+    63 |                     | Activity        | AutovacuumMain      |
+    64 |                     | Activity        | LogicalLauncherMain |
+    59 |                     | Activity        | CheckpointerMain    |
+    60 |                     | Activity        | BgwriterHibernate   |
+    62 |                     | Activity        | WalWriterMain       |
+(56 rows)

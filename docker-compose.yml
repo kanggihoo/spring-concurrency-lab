@@ -58,21 +58,27 @@ services:
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
       - GF_SECURITY_ADMIN_USER=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
     volumes:
       - grafana-storage:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
     restart: unless-stopped
 
   k6:
     image: grafana/k6
     container_name: k6
     volumes:
-      - ./scripts:/scripts # 로컬 scripts 폴더를 컨테이너에 마운트
+      - ./k6:/k6
+      - ./docs/evidence:/evidence
     depends_on:
       - prometheus
     environment:
       - K6_PROMETHEUS_RW_SERVER_URL=http://prometheus:9090/api/v1/write
-    # k6 로드 테스트를 실행하려면 아래 커맨드를 덮어쓰거나 프로필 모드로 실행하세요.
-    command: run --out experimental-prometheus-rw /scripts/simple_test.js
+      - K6_PROMETHEUS_RW_TREND_STATS=p(95),p(99)
+    # Prefer k6/run.sh for named presets. This default runs the Phase 2 baseline.
+    command: run --out experimental-prometheus-rw -e PRESET=/k6/presets/baseline.json /k6/reservation-test.js
     extra_hosts:
       - "host.docker.internal:host-gateway" # 로컬 Spring Boot 서버 접근용
     profiles:

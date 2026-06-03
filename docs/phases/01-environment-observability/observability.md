@@ -10,7 +10,7 @@ Phase 1은 전략별 성능 분석이 아니라 관측 경로가 살아 있는�
 | PostgreSQL | postgres_exporter target | Prometheus target `UP` |
 | Prometheus | `spring`, `postgres` targets | active target health `up` |
 | Grafana | UI and datasource access | 로그인 및 Prometheus 데이터 접근 가능 |
-| k6 | `simple_test.js` smoke test | status check 통과 또는 실패 원인 기록 |
+| k6 | `k6/run.sh baseline prometheus` | status check 통과 또는 실패 원인 기록 |
 | Reset | `/api/test/reset` 또는 SQL | 반복 실험 전 DB 상태 초기화 가능 |
 
 ## Evidence
